@@ -99,7 +99,9 @@ def create_lu_xml_file(fn_en,
                        lexemes,
                        lemma,
                        pos,
-                       definition):
+                       definition,
+                       incorporated_fe=None,
+                       optional_lu_attrs={}):
 
     frame = fn_en.frame_by_name(frame)
 
@@ -125,8 +127,14 @@ def create_lu_xml_file(fn_en,
     root.set('totalAnnotated', '0')
     root.set('ID', str(lu_id))
 
-    if 'incorporatedFE' in root.attrib:
-        del root.attrib['incorporatedFE']
+    if incorporated_fe is not None:
+        root.set('incorporatedFE', incorporated_fe)
+    else:
+        if 'incorporatedFE' in root.attrib:
+            del root.attrib['incorporatedFE']
+
+    for key, value in optional_lu_attrs.items():
+        root.set(key, value)
 
     def_el = root.find('{http://framenet.icsi.berkeley.edu}definition')
     if definition is None:
@@ -136,7 +144,8 @@ def create_lu_xml_file(fn_en,
     # update lexemes
     queries = ['{http://framenet.icsi.berkeley.edu}lexeme',
                '{http://framenet.icsi.berkeley.edu}valences',
-               '{http://framenet.icsi.berkeley.edu}subCorpus']
+               '{http://framenet.icsi.berkeley.edu}subCorpus',
+               '{http://framenet.icsi.berkeley.edu}header/{http://framenet.icsi.berkeley.edu}corpus']
     for query in queries:
         for el in root.findall(query):
             el.getparent().remove(el)
@@ -165,7 +174,8 @@ def add_lu_el_to_luindex(path_lu_index,
                          status,
                          lemma,
                          pos,
-                         lu_id):
+                         lu_id,
+                         optional_lu_attrs={}):
     parser = etree.XMLParser(remove_blank_text=True)
     doc = etree.parse(path_lu_index, parser)
     root = doc.getroot()
@@ -180,6 +190,9 @@ def add_lu_el_to_luindex(path_lu_index,
                             'name' : f'{lemma}.{pos.lower()}',
                             'ID' : str(lu_id)
                           })
+
+    for key, value in optional_lu_attrs.items():
+        lu_el.set(key, value)
 
     root.append(lu_el)
 
@@ -198,7 +211,9 @@ def add_lu_to_frame_xml_file(your_fn,
                              lexemes,
                              provenance,
                              cdate,
-                             definition):
+                             definition,
+                             incorporated_fe=None,
+                             optional_lu_attrs={}):
     frame_xml_path = os.path.join(your_fn._root,
                                   'frame',
                                   f'{frame}.xml')
@@ -217,6 +232,11 @@ def add_lu_to_frame_xml_file(your_fn,
                               'cBy' : provenance,
                               'cDate' : cdate,
                           })
+    if incorporated_fe is not None:
+        lu_el.set('incorporatedFE', incorporated_fe)
+
+    for key, value in optional_lu_attrs.items():
+        lu_el.set(key, value)
 
     def_el = etree.Element('definition')
     if definition is None:

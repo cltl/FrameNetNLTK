@@ -18,6 +18,9 @@ Each LU is provided with a part of speech tag.
 The available set can be foudn at **../validation_utils.POS**.
 We refer to FrameNet for the documentation about the definitions of the part of speech tags.
 
+We've added one part of speech tag:
+* **I** for infix, which we use for bound morphemes in compounds.
+
 ### Lexemes
 Each LU contains one or more lexemes, for which FrameNet defines the following attributes:
 * order: the orthographic order as a string, e.g., '1' or '2'

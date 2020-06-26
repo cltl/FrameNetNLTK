@@ -14,7 +14,9 @@ def add_lu(your_lexicon_folder,
            pos,
            frame,
            provenance,
+           incorporated_fe=None,
            timestamp=None,
+           optional_lu_attrs={},
            verbose=0):
 
     your_fn = load_utils.load(folder=your_lexicon_folder)
@@ -24,6 +26,14 @@ def add_lu(your_lexicon_folder,
     validation_utils.validate_pos(pos=pos)
     validation_utils.validate_frame(your_fn=your_fn, frame_name=frame)
     validation_utils.validate_lexemes(lexemes=lexemes)
+    validation_utils.validate_order_attr(lexemes=lexemes)
+    if incorporated_fe is not None:
+        validation_utils.validate_incorporated_fe(fn_en=fn_en,
+                                                  frame_label=frame,
+                                                  incorporated_fe=incorporated_fe)
+
+    validation_utils.validate_incorporate_fe_lu_and_lexemes(incorporated_fe=incorporated_fe,
+                                                            lexemes=lexemes)
 
     # lexicon validation steps
     lemma = lexicon_utils.create_lemma(lexemes)
@@ -32,7 +42,6 @@ def add_lu(your_lexicon_folder,
                                                                              lemma=lemma,
                                                                              pos=pos)
 
-    print(lemma_pos_in_lexicon)
     assert frame not in lemma_pos_in_lexicon, f'{lemma} {pos} is already part of {frame}. Please inspect.'
     frame_obj = fn_en.frame_by_name(frame)
     frame_id = frame_obj.ID
@@ -62,7 +71,9 @@ def add_lu(your_lexicon_folder,
                                  lexemes,
                                  lemma,
                                  pos,
-                                 definition)
+                                 definition,
+                                 incorporated_fe=incorporated_fe,
+                                 optional_lu_attrs=optional_lu_attrs)
 
     # add lu element to luIndex.xml
     xml_utils.add_lu_el_to_luindex(path_lu_index=paths_your_fn['luIndex'],
@@ -71,7 +82,8 @@ def add_lu(your_lexicon_folder,
                                    status=status,
                                    lemma=lemma,
                                    pos=pos,
-                                   lu_id=lu_id)
+                                   lu_id=lu_id,
+                                   optional_lu_attrs=optional_lu_attrs)
 
     # add lu to frame/FRAME_NAME.xml file
     xml_utils.add_lu_to_frame_xml_file(your_fn,
@@ -84,7 +96,9 @@ def add_lu(your_lexicon_folder,
                                        lexemes,
                                        provenance,
                                        cdate,
-                                       definition)
+                                       definition,
+                                       incorporated_fe=incorporated_fe,
+                                       optional_lu_attrs=optional_lu_attrs)
 
 
 def remove_lu(your_lexicon_folder,

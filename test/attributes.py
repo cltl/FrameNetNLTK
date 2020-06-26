@@ -73,6 +73,37 @@ def test_existing_lemma_id():
     assert new_lu_id == 50823
 
 
+def test_incorporated_fe():
+    validation_utils.validate_incorporated_fe(fn_en=fn,
+                                              frame_label='People_by_origin',
+                                              incorporated_fe='Origin')
+
+def test_error_incorporated_fe():
+    with pytest.raises(AssertionError):
+        validation_utils.validate_incorporated_fe(fn_en=fn,
+                                                  frame_label='People_by_origin',
+                                                  incorporated_fe='wrong_label')
+
+def test_order():
+    validation_utils.validate_order_attr(lexemes=[{'order': '1'},
+                                                  {'order': '2'}])
+
+def test_error_order():
+    with pytest.raises(AssertionError):
+        validation_utils.validate_order_attr([{'order': '1'},
+                                             {'order': '1'}])
+
+
+def test_incorporated_fe_lu_and_lexemes():
+    validation_utils.validate_incorporate_fe_lu_and_lexemes(incorporated_fe='Origin',
+                                                            lexemes=[{'incorporatedFE': 'Origin'},
+                                                                     {}])
+
+def test_error_incorporated_fe_lu_and_lexemes():
+    with pytest.raises(AssertionError):
+        validation_utils.validate_incorporate_fe_lu_and_lexemes(incorporated_fe='Origin',
+                                                                lexemes=[{'incorporatedFE' : 'wrong_label'},
+                                                                         {}])
 test_assertion_error_for_status()
 test_assertion_error_for_pos()
 test_keyerror_for_frame()
@@ -83,8 +114,10 @@ test_assertion_error_for_lexeme_4()
 test_new_lu_id()
 test_new_lemma_id()
 test_existing_lemma_id()
-
-
-
-
+test_incorporated_fe()
+test_error_incorporated_fe()
+test_order()
+test_error_order()
+test_incorporated_fe_lu_and_lexemes()
+test_error_incorporated_fe_lu_and_lexemes()
 

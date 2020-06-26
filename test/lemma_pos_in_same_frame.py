@@ -22,6 +22,7 @@ add_lu(your_lexicon_folder='test_lexicon',
        pos='N',
        frame='People_by_origin',
        provenance='manual',
+       incorporated_fe='Origin',
        verbose=2)
 
 
