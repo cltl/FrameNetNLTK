@@ -50,7 +50,7 @@ We refer to [the documentation](http://www.nltk.org/howto/framenet.html)
 for information about how to use the Python package.
 
 Step 3: add an LU to a lexicalized frame in English FrameNet
-We refer to the file [Phenomena](.doc/Phenomena.md) for more information about how to represent Lexical Units.
+We refer to the file [Phenomena](doc/Phenomena.md) for more information about how to represent Lexical Units.
 
 
 ```python
