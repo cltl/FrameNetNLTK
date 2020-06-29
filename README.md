@@ -192,6 +192,19 @@ Please note that the optional attributes must be present in each entry:
 * "timestamp" : null (current date) or a list [YEAR, MONTH, DAY], e.g., [2020, 6, 29]
 * "optional_lu_attrs": empty dict or filled with your optional attributes.
 
+Function 8: local http server
+It is possible to vizualize your FrameNet similar to how FrameNet visualizes it
+([frameIndex](https://framenet.icsi.berkeley.edu/fndrupal/frameIndex) and [luIndex](https://framenet.icsi.berkeley.edu/fndrupal/luIndex)).
+
+```bash 
+cd test_lexicon
+python3 -m http.server
+Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
+```
+Point your browser to the URL shown in the terminal:
+* click on **luIndex.xml**
+* click on **frameIndex.xml**
+
 ## Documentation
 The documentation can be found at **doc/FrameNetNLTK.md**.
 

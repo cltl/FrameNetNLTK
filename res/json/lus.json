@@ -8,7 +8,7 @@
             "name" : "Californiër"
         }],
       "definition" : "van Californië",
-      "status" : "New",
+      "status" : "Created",
       "pos" : "N",
       "frame" : "People_by_origin",
       "provenance" : "manual",
@@ -24,7 +24,7 @@
             "name" : "Fransman"
         }],
       "definition" : "uit Frankrijk",
-      "status" : "New",
+      "status" : "Created",
       "pos" : "N",
       "frame" : "People_by_origin",
       "provenance" : "manual",

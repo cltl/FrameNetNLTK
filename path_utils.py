@@ -21,12 +21,16 @@ def get_relevant_paths(root, check_if_exists=True):
     label_to_path = {}
 
     label_and_basenames = [
-        ('frRelation', 'frRelation.xml'),
-        ('frameIndex', 'frameIndex.xml'),
-        ('luIndex', 'luIndex.xml'),
-        ('semTypes', 'semTypes.xml'),
+        ('frRelation.xml', 'frRelation.xml'),
+        ('frameIndex.xml', 'frameIndex.xml'),
+        ('frameIndex.xsl', 'frameIndex.xsl'),
+        ('luIndex.xml', 'luIndex.xml'),
+        ('luIndex.xsl', 'luIndex.xsl'),
+        ('semTypes.xml', 'semTypes.xml'),
         ('lu_dir', 'lu'),
-        ('frame_dir', 'frame')
+        ('lexUnit.xsl', 'lu/lexUnit.xsl'),
+        ('frame_dir', 'frame'),
+        ('frame.xsl', 'frame/frame.xsl')
     ]
 
     for label, basename in label_and_basenames:

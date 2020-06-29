@@ -58,11 +58,18 @@ def initialize(folder,
     paths_fn_en = path_utils.get_relevant_paths(root_en)
 
     # cp files and folder
-    for label in ['frRelation', 'frameIndex', 'semTypes']:
-        shutil.copy(src=paths_fn_en[label],
-                    dst=paths_your_fn[label])
     path_utils.remove_and_create_folder(fldr=paths_your_fn['lu_dir'], verbose=verbose)
     path_utils.remove_and_create_folder(fldr=paths_your_fn['frame_dir'], verbose=verbose)
+
+    for label in ['frRelation.xml',
+                  'frameIndex.xml',
+                  'frameIndex.xsl',
+                  'luIndex.xsl',
+                  'lexUnit.xsl',
+                  'semTypes.xml',
+                  'frame.xsl']:
+        shutil.copy(src=paths_fn_en[label],
+                    dst=paths_your_fn[label])
 
     # load frame/*xml files and remove lexUnit elements
     for frame, frame_xml in paths_fn_en['frame_to_xml_path'].items():
@@ -72,8 +79,8 @@ def initialize(folder,
                                    output_path=output_path)
 
     # load luIndex.xml and strip luIndex/lu elements
-    strip_lu_els_and_save(input_path=paths_fn_en['luIndex'],
-                          output_path=paths_your_fn['luIndex'])
+    strip_lu_els_and_save(input_path=paths_fn_en['luIndex.xml'],
+                          output_path=paths_your_fn['luIndex.xml'])
 
 
 def create_lexeme_els(lexemes):

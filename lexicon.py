@@ -77,7 +77,7 @@ def add_lu(your_lexicon_folder,
                                  optional_lu_attrs=optional_lu_attrs)
 
     # add lu element to luIndex.xml
-    xml_utils.add_lu_el_to_luindex(path_lu_index=paths_your_fn['luIndex'],
+    xml_utils.add_lu_el_to_luindex(path_lu_index=paths_your_fn['luIndex.xml'],
                                    frame_id=frame_id,
                                    frame_name=frame,
                                    status=status,
@@ -154,7 +154,7 @@ def remove_lu(your_lexicon_folder,
                                  lu_id=lu_id)
 
     # remove lu element from luIndex.xml
-    xml_utils.remove_lu_el_from_luindex(path_lu_index=paths_your_fn['luIndex'],
+    xml_utils.remove_lu_el_from_luindex(path_lu_index=paths_your_fn['luIndex.xml'],
                                         lu_id=lu_id)
 
 
