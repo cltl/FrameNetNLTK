@@ -1,0 +1,37 @@
+{
+  "lus" : [
+    { "lexemes" : [{
+            "order" : "1",
+            "headword" : "false",
+            "breakBefore" : "false",
+            "POS" : "N",
+            "name" : "Californiër"
+        }],
+      "definition" : "van Californië",
+      "status" : "New",
+      "pos" : "N",
+      "frame" : "People_by_origin",
+      "provenance" : "manual",
+      "incorporated_fe" : "Origin",
+      "timestamp" : [2020, 6, 29],
+      "optional_lu_attrs" : {}
+     },
+        { "lexemes" : [{
+            "order" : "1",
+            "headword" : "false",
+            "breakBefore" : "false",
+            "POS" : "N",
+            "name" : "Fransman"
+        }],
+      "definition" : "uit Frankrijk",
+      "status" : "New",
+      "pos" : "N",
+      "frame" : "People_by_origin",
+      "provenance" : "manual",
+      "incorporated_fe" : "Origin",
+      "timestamp" : null,
+          "optional_lu_attrs" : {}
+          }
+  ]
+}
+

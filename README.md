@@ -23,14 +23,13 @@ bash install.sh
 
 ## Usage
 
-Step 1: initialize a new FrameNet lexicon
+Function 1: initialize a new FrameNet lexicon
 ```python
 from FrameNLTK import initialize
 from nltk.corpus import framenet as fn
 initialize(folder='test_lexicon',
            fn_en=fn,
            verbose=2)
-
 ```
 
 * **folder**: indicates where the lexicon will be stored on disk. The NLTK convention is to indicate the version in the folder name, e.g., dutch_framenet_v10.
@@ -39,7 +38,7 @@ initialize(folder='test_lexicon',
 At the location of **folder**, an empty FrameNet lexicon will be created stripped from all LU information,
 but with the frame information intact.
 
-Step 2: load the lexicon
+Function 2: load the lexicon
 ```python
 from FrameNetNLTK import load
 my_fn = load(folder='test_lexicon')
@@ -49,12 +48,11 @@ You will notice that there is no LU information in the lexicon.
 We refer to [the documentation](http://www.nltk.org/howto/framenet.html)
 for information about how to use the Python package.
 
-Step 3: add an LU to a lexicalized frame in English FrameNet
+Function 3: add an LU to a lexicalized frame in English FrameNet
 We refer to the file [Phenomena](doc/Phenomena.md) for more information about how to represent Lexical Units.
 
 
 ```python
-
 from nltk.corpus import framenet as fn
 from FrameNetNLTK import add_lu
 
@@ -123,7 +121,7 @@ add_lu(your_lexicon_folder='test_lexicon',
        verbose=2)
 ```
 
-Step 4: remove a lexical unit
+Function 4: remove a lexical unit
 
 ```python
 from FrameNetNLTK import remove_lu
@@ -136,7 +134,7 @@ You can use the nltk package to find the identiifer of a lexical unit that you w
 What if I want to edit? For now, this is not implemented. The easiest is to remove
 the LU and add it with the changes.
 
-Step 5: query the lexicon
+Function 5: query the lexicon
 ```python 
 from FrameNetNLTK import load
 my_fn = load(folder='test_lexicon')
@@ -145,7 +143,7 @@ for lu in my_fn.lus():
     print(lu) 
 ```
 
-Step 6: optional LU attributes.
+Function 6: optional LU attributes.
 The NLTK package is flexible in that it allows to add additional attributes:
 ```python
 
@@ -175,6 +173,24 @@ add_lu(your_lexicon_folder='test_lexicon',
 
 You will be able to access this information using the syntax **lu.ATTR_NAME**, e.g., *lu.RBN_LU_ID*.
 Since this is an open-ended class, there is no validation on what is entered.
+
+Function 7: add a batch of LUs
+It is possible to provide a JSON consisting of LUs to be added.
+
+```python
+from nltk.corpus import framenet as fn
+from FrameNetNLTK import add_lus_from_json
+
+add_lus_from_json(your_lexicon_folder='test_lexicon',
+                  fn_en=fn,
+                  json_path='res/json/lus.json')
+```
+
+Please inspect **res/json/lus.json** for an example.
+Please note that the optional attributes must be present in each entry:
+* "incorporated_fe" : null or a Frame Element label, e.g., "Origin".
+* "timestamp" : null (current date) or a list [YEAR, MONTH, DAY], e.g., [2020, 6, 29]
+* "optional_lu_attrs": empty dict or filled with your optional attributes.
 
 ## Documentation
 The documentation can be found at **doc/FrameNetNLTK.md**.

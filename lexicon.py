@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 
 from . import validation_utils
@@ -99,6 +100,43 @@ def add_lu(your_lexicon_folder,
                                        definition,
                                        incorporated_fe=incorporated_fe,
                                        optional_lu_attrs=optional_lu_attrs)
+
+
+def add_lus_from_json(your_lexicon_folder,
+                      fn_en,
+                      json_path):
+    """
+
+    :param your_lexicon_folder:
+    :param fn_en:
+    :param json_path:
+    :return:
+    """
+    json_lus = json.load(open(json_path))
+
+    for lu in json_lus['lus']:
+
+        the_timestamp = lu['timestamp']
+        if lu['timestamp'] is not None:
+            year, month, day = lu['timestamp']
+            the_timestamp = datetime(year=year, month=month, day=day)
+
+        add_lu(your_lexicon_folder,
+               fn_en,
+               lexemes=lu['lexemes'],
+               definition=lu['definition'],
+               status=lu['status'],
+               pos=lu['pos'],
+               frame=lu['frame'],
+               provenance=lu['provenance'],
+               incorporated_fe=lu['incorporated_fe'],
+               timestamp=the_timestamp,
+               optional_lu_attrs=lu['optional_lu_attrs'])
+
+
+
+
+
 
 
 def remove_lu(your_lexicon_folder,
