@@ -46,6 +46,7 @@ def add_lu(your_lexicon_folder,
 
     if frame in lemma_pos_in_lexicon:
         warnings.warn(f'{lemma} {pos} is already part of {frame}. Please inspect.')
+        return
 
     frame_obj = fn_en.frame_by_name(frame)
     frame_id = frame_obj.ID
