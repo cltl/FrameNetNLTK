@@ -1,4 +1,5 @@
 import json
+import warnings
 from datetime import datetime
 
 from . import validation_utils
@@ -43,7 +44,9 @@ def add_lu(your_lexicon_folder,
                                                                              lemma=lemma,
                                                                              pos=pos)
 
-    assert frame not in lemma_pos_in_lexicon, f'{lemma} {pos} is already part of {frame}. Please inspect.'
+    if frame in lemma_pos_in_lexicon:
+        warnings.warn(f'{lemma} {pos} is already part of {frame}. Please inspect.')
+
     frame_obj = fn_en.frame_by_name(frame)
     frame_id = frame_obj.ID
 

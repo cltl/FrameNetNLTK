@@ -25,7 +25,7 @@ bash install.sh
 
 Function 1: initialize a new FrameNet lexicon
 ```python
-from FrameNLTK import initialize
+from FrameNetNLTK import initialize
 from nltk.corpus import framenet as fn
 initialize(folder='test_lexicon',
            fn_en=fn,
