@@ -130,7 +130,7 @@ def add_lus_from_json(your_lexicon_folder,
                lexemes=lu['lexemes'],
                definition=lu['definition'],
                status=lu['status'],
-               pos=lu['pos'],
+               pos=lu['POS'],
                frame=lu['frame'],
                provenance=lu['provenance'],
                incorporated_fe=lu['incorporated_fe'],
@@ -160,6 +160,3 @@ def remove_lu(your_lexicon_folder,
     # remove lu element from luIndex.xml
     xml_utils.remove_lu_el_from_luindex(path_lu_index=paths_your_fn['luIndex.xml'],
                                         lu_id=lu_id)
-
-
-

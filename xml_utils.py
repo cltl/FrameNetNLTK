@@ -152,6 +152,7 @@ def create_lu_xml_file(fn_en,
     queries = ['{http://framenet.icsi.berkeley.edu}lexeme',
                '{http://framenet.icsi.berkeley.edu}valences',
                '{http://framenet.icsi.berkeley.edu}subCorpus',
+               '{http://framenet.icsi.berkeley.edu}semType',
                '{http://framenet.icsi.berkeley.edu}header/{http://framenet.icsi.berkeley.edu}corpus']
     for query in queries:
         for el in root.findall(query):
@@ -160,10 +161,6 @@ def create_lu_xml_file(fn_en,
     lexeme_els = create_lexeme_els(lexemes)
     for lexeme_el in lexeme_els:
         root.append(lexeme_el)
-
-    root.append(etree.Element('valences'))
-    subcorpus_el = etree.Element('subCorpus', attrib={'name': 'manually-added'})
-    root.append(subcorpus_el)
 
     output_path=os.path.join(your_fn._root,
                              your_fn._lu_dir,

@@ -88,6 +88,6 @@ add_lu(your_lexicon_folder='test_lexicon',
        frame='People_by_origin',
        provenance='manual',
        incorporated_fe="Origin",
-       optional_lu_attrs={"RBN_LU_ID" : "r_n-11800", "relation" : "equivalence"},
+       optional_lu_attrs={"RBN_sense_ID" : "r_n-11800", "RBN_matching_relation" : "equivalence"},
        verbose=2)
 

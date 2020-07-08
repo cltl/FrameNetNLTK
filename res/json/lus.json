@@ -9,7 +9,7 @@
         }],
       "definition" : "van Californië",
       "status" : "Created",
-      "pos" : "N",
+      "POS" : "N",
       "frame" : "People_by_origin",
       "provenance" : "manual",
       "incorporated_fe" : "Origin",
@@ -25,7 +25,7 @@
         }],
       "definition" : "uit Frankrijk",
       "status" : "Created",
-      "pos" : "N",
+      "POS" : "N",
       "frame" : "People_by_origin",
       "provenance" : "manual",
       "incorporated_fe" : "Origin",
@@ -34,4 +34,3 @@
           }
   ]
 }
-
