@@ -1,12 +1,14 @@
 import json
 import warnings
 from datetime import datetime
+from collections import Counter
 
 from . import validation_utils
 from . import lexicon_utils
 from . import xml_utils
 from . import path_utils
 from . import load_utils
+
 
 def add_lu(your_lexicon_folder,
            fn_en,
@@ -20,6 +22,7 @@ def add_lu(your_lexicon_folder,
            timestamp=None,
            optional_lu_attrs={},
            verbose=0):
+    succes = False
 
     your_fn = load_utils.load(folder=your_lexicon_folder)
 
@@ -27,7 +30,7 @@ def add_lu(your_lexicon_folder,
     validation_utils.validate_status(status=status)
     validation_utils.validate_pos(pos=pos)
     validation_utils.validate_frame(your_fn=your_fn, frame_name=frame)
-    validation_utils.validate_lexemes(lexemes=lexemes)
+    validation_utils.validate_lexemes(my_fn=your_fn, lexemes=lexemes)
     validation_utils.validate_order_attr(lexemes=lexemes)
     if incorporated_fe is not None:
         validation_utils.validate_incorporated_fe(fn_en=fn_en,
@@ -46,7 +49,7 @@ def add_lu(your_lexicon_folder,
 
     if frame in lemma_pos_in_lexicon:
         warnings.warn(f'{lemma} {pos} is already part of {frame}. Please inspect.')
-        return
+        return succes
 
     frame_obj = fn_en.frame_by_name(frame)
     frame_id = frame_obj.ID
@@ -54,8 +57,7 @@ def add_lu(your_lexicon_folder,
     # update XML files
 
     # get relevant paths
-    paths_your_fn = path_utils.get_relevant_paths(your_fn._root, check_if_exists=False)
-    paths_fn_en = path_utils.get_relevant_paths(fn_en._root)
+    paths_your_fn = path_utils.get_relevant_paths(your_fn.root, check_if_exists=False)
 
     lu_id = lexicon_utils.get_next_lu_id(your_fn=your_fn)
     lemma_id = lexicon_utils.get_lemma_id(your_fn=your_fn,
@@ -105,18 +107,28 @@ def add_lu(your_lexicon_folder,
                                        incorporated_fe=incorporated_fe,
                                        optional_lu_attrs=optional_lu_attrs)
 
+    if verbose >= 1:
+        print(f'added lu id {lu_id}: {lemma}.{pos} -> {frame}')
+
+    succes = True
+    return succes
+
 
 def add_lus_from_json(your_lexicon_folder,
                       fn_en,
-                      json_path):
+                      json_path,
+                      verbose=0):
     """
 
+    :param verbose:
     :param your_lexicon_folder:
     :param fn_en:
     :param json_path:
     :return:
     """
     json_lus = json.load(open(json_path))
+
+    status = []
 
     for lu in json_lus['lus']:
 
@@ -125,29 +137,54 @@ def add_lus_from_json(your_lexicon_folder,
             year, month, day = lu['timestamp']
             the_timestamp = datetime(year=year, month=month, day=day)
 
-        add_lu(your_lexicon_folder,
-               fn_en,
-               lexemes=lu['lexemes'],
-               definition=lu['definition'],
-               status=lu['status'],
-               pos=lu['POS'],
-               frame=lu['frame'],
-               provenance=lu['provenance'],
-               incorporated_fe=lu['incorporated_fe'],
-               timestamp=the_timestamp,
-               optional_lu_attrs=lu['optional_lu_attrs'])
+        succes = add_lu(your_lexicon_folder,
+                        fn_en,
+                        lexemes=lu['lexemes'],
+                        definition=lu['definition'],
+                        status=lu['status'],
+                        pos=lu['POS'],
+                        frame=lu['frame'],
+                        provenance=lu['provenance'],
+                        incorporated_fe=lu['incorporated_fe'],
+                        timestamp=the_timestamp,
+                        optional_lu_attrs=lu['optional_lu_attrs'],
+                        verbose=verbose)
 
+        if succes:
+            status.append('added')
+        else:
+            status.append('failed to add')
 
-
-
-
+    if verbose:
+        print(f'{len(status)} LUs were provided to be added.')
+        print(f'the process resulted in: {Counter(status)}')
 
 
 def remove_lu(your_lexicon_folder,
               lu_id,
               verbose=0):
+    """
+
+    :param your_lexicon_folder:
+    :param int lu_id: the integer of the lu identifier
+    :param verbose:
+    :return:
+    """
+    assert type(lu_id) == int, f'the lu id has to be an integer, you provided {type(lu_id)}'
+
     your_fn = load_utils.load(folder=your_lexicon_folder)
-    paths_your_fn = path_utils.get_relevant_paths(your_fn._root)
+    paths_your_fn = path_utils.get_relevant_paths(your_fn.root)
+
+    # inspect that no endocentric compound is referring to it in a lexeme
+    source_lu_ids = set()
+    for lu in your_fn.lus():
+        for lexeme in lu.lexemes:
+            if 'lu_id' in lexeme:
+                if lexeme['lu_id'] == lu_id:
+                    source_lu_ids.add(lexeme['lu_id'])
+
+    if source_lu_ids:
+        assert False, f'LUs {source_lu_ids} are referring to the LU that you want to remove in a lexeme.'
 
     # remove lu from frame/FRAME_NAME.xml file
     xml_utils.remove_lexunit_el_from_frame_xml(your_fn,
@@ -160,3 +197,9 @@ def remove_lu(your_lexicon_folder,
     # remove lu element from luIndex.xml
     xml_utils.remove_lu_el_from_luindex(path_lu_index=paths_your_fn['luIndex.xml'],
                                         lu_id=lu_id)
+
+    if verbose:
+        print(f'removed lu id {lu_id} from the lexicon.')
+
+    succes = True
+    return succes

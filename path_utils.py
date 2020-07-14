@@ -51,6 +51,3 @@ def get_relevant_paths(root, check_if_exists=True):
 
     return label_to_path
 
-def get_frame_xml_path(your_fn, frame_name):
-    pass
-

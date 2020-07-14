@@ -5,6 +5,7 @@ from lxml import etree
 
 from . import path_utils
 
+
 def strip_lexunit_els_and_save(input_path,
                                output_path):
     parser = etree.XMLParser(remove_blank_text=True)
@@ -18,9 +19,9 @@ def strip_lexunit_els_and_save(input_path,
     assert len(els) == 0
 
     doc.write(output_path,
-               encoding='utf-8',
-               pretty_print=True,
-               xml_declaration=True)
+              encoding='utf-8',
+              pretty_print=True,
+              xml_declaration=True)
 
 
 def strip_lu_els_and_save(input_path,
@@ -45,10 +46,10 @@ def strip_lu_els_and_save(input_path,
 def initialize(folder,
                fn_en,
                verbose=0):
-
     # validate fn_en
-    root_en = fn_en._root
-    assert os.path.exists(root_en), f'Unable to find the root folder on disk for the fn_en object ({root_en}). Please inspect.'
+    root_en = fn_en.root
+    assert os.path.exists(
+        root_en), f'Unable to find the root folder on disk for the fn_en object ({root_en}). Please inspect.'
 
     # create folder
     path_utils.remove_and_create_folder(folder, verbose=verbose)
@@ -82,9 +83,11 @@ def initialize(folder,
     strip_lu_els_and_save(input_path=paths_fn_en['luIndex.xml'],
                           output_path=paths_your_fn['luIndex.xml'])
 
+    if verbose:
+        print(f'initialized empty FrameNet lexicon at {folder}')
+
 
 def create_lexeme_els(lexemes):
-
     order_to_lexeme = {}
     for lexeme in lexemes:
         order_to_lexeme[int(lexeme['order'])] = lexeme
@@ -109,7 +112,6 @@ def create_lu_xml_file(fn_en,
                        definition,
                        incorporated_fe=None,
                        optional_lu_attrs={}):
-
     frame = fn_en.frame_by_name(frame)
 
     assert len(frame.lexUnit), f'{frame} is not lexicalized in English. Not able to add the LU.'
@@ -120,7 +122,7 @@ def create_lu_xml_file(fn_en,
         en_lu_id = lu_obj.ID
         break
 
-    input_path = os.path.join(fn_en._root,
+    input_path = os.path.join(fn_en.root,
                               fn_en._lu_dir,
                               f'lu{en_lu_id}.xml')
 
@@ -162,9 +164,9 @@ def create_lu_xml_file(fn_en,
     for lexeme_el in lexeme_els:
         root.append(lexeme_el)
 
-    output_path=os.path.join(your_fn._root,
-                             your_fn._lu_dir,
-                             f'lu{lu_id}.xml')
+    output_path = os.path.join(your_fn.root,
+                               your_fn._lu_dir,
+                               f'lu{lu_id}.xml')
     doc.write(output_path,
               encoding='utf-8',
               pretty_print=True,
@@ -186,13 +188,13 @@ def add_lu_el_to_luindex(path_lu_index,
 
     lu_el = etree.Element('lu',
                           attrib={
-                            'numAnnotInstances' : "0",
-                            'hasAnnotation' : "false",
-                            'frameID' : str(frame_id),
-                            'frameName' : frame_name,
-                            'status' : status,
-                            'name' : f'{lemma}.{pos.lower()}',
-                            'ID' : str(lu_id)
+                              'numAnnotInstances': "0",
+                              'hasAnnotation': "false",
+                              'frameID': str(frame_id),
+                              'frameName': frame_name,
+                              'status': status,
+                              'name': f'{lemma}.{pos.lower()}',
+                              'ID': str(lu_id)
                           })
 
     for key, value in optional_lu_attrs.items():
@@ -204,6 +206,7 @@ def add_lu_el_to_luindex(path_lu_index,
               encoding='utf-8',
               pretty_print=True,
               xml_declaration=True)
+
 
 def add_lu_to_frame_xml_file(your_fn,
                              frame,
@@ -218,7 +221,7 @@ def add_lu_to_frame_xml_file(your_fn,
                              definition,
                              incorporated_fe=None,
                              optional_lu_attrs={}):
-    frame_xml_path = os.path.join(your_fn._root,
+    frame_xml_path = os.path.join(your_fn.root,
                                   'frame',
                                   f'{frame}.xml')
 
@@ -228,13 +231,13 @@ def add_lu_to_frame_xml_file(your_fn,
 
     lu_el = etree.Element('lexUnit',
                           attrib={
-                              'status' : status,
-                              'POS' : pos,
-                              'name' : f'{lemma}.{pos.lower()}',
-                              'ID' : str(lu_id),
-                              'lemmaID' : str(lemma_id),
-                              'cBy' : provenance,
-                              'cDate' : cdate,
+                              'status': status,
+                              'POS': pos,
+                              'name': f'{lemma}.{pos.lower()}',
+                              'ID': str(lu_id),
+                              'lemmaID': str(lemma_id),
+                              'cBy': provenance,
+                              'cDate': cdate,
                           })
     if incorporated_fe is not None:
         lu_el.set('incorporatedFE', incorporated_fe)
@@ -248,7 +251,7 @@ def add_lu_to_frame_xml_file(your_fn,
     def_el.text = definition
     lu_el.append(def_el)
 
-    lu_el.append(etree.Element('sentenceCount', attrib={'annotated' : '0', 'total' : '0'}))
+    lu_el.append(etree.Element('sentenceCount', attrib={'annotated': '0', 'total': '0'}))
 
     lexeme_els = create_lexeme_els(lexemes)
     for lexeme_el in lexeme_els:
@@ -264,7 +267,7 @@ def add_lu_to_frame_xml_file(your_fn,
 
 def remove_lu_xml_file(your_fn,
                        lu_id):
-    input_path = os.path.join(your_fn._root,
+    input_path = os.path.join(your_fn.root,
                               your_fn._lu_dir,
                               f'lu{lu_id}.xml')
     os.remove(input_path)
@@ -288,7 +291,7 @@ def remove_lu_el_from_luindex(path_lu_index,
     els = root.findall(query)
     after = len(els)
 
-    assert before == (after+1)
+    assert before == (after + 1)
 
     doc.write(path_lu_index,
               encoding='utf-8',
@@ -298,11 +301,10 @@ def remove_lu_el_from_luindex(path_lu_index,
 
 def remove_lexunit_el_from_frame_xml(your_fn,
                                      lu_id):
-
     lu = your_fn.lu(lu_id)
     frame_name = lu.frame.name
 
-    frame_xml_path = os.path.join(your_fn._root,
+    frame_xml_path = os.path.join(your_fn.root,
                                   'frame',
                                   f'{frame_name}.xml')
 
@@ -328,6 +330,3 @@ def remove_lexunit_el_from_frame_xml(your_fn,
               encoding='utf-8',
               pretty_print=True,
               xml_declaration=True)
-
-
-

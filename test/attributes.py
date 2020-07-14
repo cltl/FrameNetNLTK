@@ -21,7 +21,7 @@ def test_keyerror_for_frame():
 
 def test_assertion_error_for_lexeme_1():
     with pytest.raises(AssertionError):
-        validation_utils.validate_lexeme(lexeme={'a' : 1})
+        validation_utils.validate_lexeme(my_fn=fn, lexeme={'a' : 1})
 
 def test_assertion_error_for_lexeme_2():
     with pytest.raises(ValueError):
@@ -32,7 +32,7 @@ def test_assertion_error_for_lexeme_2():
             'POS' : 'N',
             'name' : 'surrender'
         }
-        validation_utils.validate_lexeme(lexeme=lexeme)
+        validation_utils.validate_lexeme(my_fn=fn, lexeme=lexeme)
 
 def test_assertion_error_for_lexeme_3():
     with pytest.raises(AssertionError):
@@ -43,7 +43,7 @@ def test_assertion_error_for_lexeme_3():
             'POS' : 'N',
             'name' : 'surrender'
         }
-        validation_utils.validate_lexeme(lexeme=lexeme)
+        validation_utils.validate_lexeme(my_fn=fn, lexeme=lexeme)
 
 def test_assertion_error_for_lexeme_4():
     with pytest.raises(AssertionError):
@@ -54,8 +54,22 @@ def test_assertion_error_for_lexeme_4():
             'POS' : 'N',
             'name' : 'surrender'
         }
-        validation_utils.validate_lexeme(lexeme=lexeme)
+        validation_utils.validate_lexeme(my_fn=fn, lexeme=lexeme)
 
+
+def test_assertion_error_for_lexeme_5():
+    with pytest.raises(AssertionError):
+
+        lexemes = [{
+            'order' : '1',
+            'headword' : 'true',
+            'breakBefore' : 'a',
+            'POS' : 'N',
+            'name' : 'surrender',
+            'lu_id' : '1'
+        }]
+        validation_utils.validate_lexemes(my_fn=fn,
+                                          lexemes=lexemes)
 def test_new_lu_id():
     new_lu_id = lexicon_utils.get_next_lu_id(fn)
     assert new_lu_id == 18821
@@ -104,6 +118,21 @@ def test_error_incorporated_fe_lu_and_lexemes():
         validation_utils.validate_incorporate_fe_lu_and_lexemes(incorporated_fe='Origin',
                                                                 lexemes=[{'incorporatedFE' : 'wrong_label'},
                                                                          {}])
+
+def test_lu_id_found():
+    lu_id, reason = lexicon_utils.get_luid(my_fn=fn,
+                                           frame_label="Leadership",
+                                           lemma="presidential",
+                                           pos="A")
+    assert lu_id == 12433
+
+def test_lu_id_not_found():
+    lu_id, reason = lexicon_utils.get_luid(my_fn=fn,
+                                           frame_label="Appelations",
+                                           lemma="presidential",
+                                           pos="A")
+    assert lu_id is None
+
 test_assertion_error_for_status()
 test_assertion_error_for_pos()
 test_keyerror_for_frame()
@@ -111,6 +140,8 @@ test_assertion_error_for_lexeme_1()
 test_assertion_error_for_lexeme_2()
 test_assertion_error_for_lexeme_3()
 test_assertion_error_for_lexeme_4()
+test_assertion_error_for_lexeme_5()
+
 test_new_lu_id()
 test_new_lemma_id()
 test_existing_lemma_id()
@@ -121,3 +152,5 @@ test_error_order()
 test_incorporated_fe_lu_and_lexemes()
 test_error_incorporated_fe_lu_and_lexemes()
 
+test_lu_id_found()
+test_lu_id_not_found()

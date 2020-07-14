@@ -41,7 +41,8 @@ but with the frame information intact.
 Function 2: load the lexicon
 ```python
 from FrameNetNLTK import load
-my_fn = load(folder='test_lexicon')
+my_fn = load(folder='test_lexicon',
+             verbose=2)
 ```
 
 You will notice that there is no LU information in the lexicon.
@@ -68,7 +69,7 @@ add_lu(your_lexicon_folder='test_lexicon',
        fn_en=fn,
        lexemes=lexemes,
        definition='van Calfornië',
-       status='New',
+       status='Created',
        pos='N',
        frame='People_by_origin',
        provenance='manual',
@@ -89,8 +90,8 @@ lexemes = [{
     'breakBefore' : 'false',
     'POS' : 'N',
     'name' : 'president',
-    'evokes' : 'false',
-    'incorporatedFE' : 'Function'
+    'incorporatedFE' : 'Function',
+    'lu_id' : '1'
 },
 {
     'order' : '2',
@@ -98,7 +99,6 @@ lexemes = [{
     'breakBefore' : 'false',
     'POS' : 'I',
     'name' : 's',
-    'evokes' : 'false'
 },
 {
     'order': '3',
@@ -106,7 +106,7 @@ lexemes = [{
     'breakBefore': 'false',
     'POS': 'N',
     'name': 'verkiezing',
-    'evokes' : 'true'
+    'lu_id' : '2'
 }
 ]
 add_lu(your_lexicon_folder='test_lexicon',
@@ -121,13 +121,22 @@ add_lu(your_lexicon_folder='test_lexicon',
        verbose=2)
 ```
 
+We highlight the optional attribute that is shown in the example, which is **lu_id**.
+In the case of endocentric compounds, as shown above with *presidentsverkiezing*, we
+allow the user to link the specific lexemes to the LU that they refer to.
+Before adding the example above, we have already added an LU for *president* and for *verkiezing* (you can use *lexicon_utils.get_luid* to obtain an lu_id).
+In the process of adding the endocentric compound to the lexicon, we also link the lexemes to their LUs.
+
+
+
 Function 4: remove a lexical unit
 
 ```python
 from FrameNetNLTK import remove_lu
 
 remove_lu(your_lexicon_folder='test_lexicon',
-          lu_id=1)
+          lu_id=1,
+          verbose=2)
 ```
 This will remove all information relating to the lexical unit with identifier 1.
 You can use the nltk package to find the identiifer of a lexical unit that you want to remove.
@@ -186,7 +195,8 @@ from FrameNetNLTK import add_lus_from_json
 
 add_lus_from_json(your_lexicon_folder='test_lexicon',
                   fn_en=fn,
-                  json_path='res/json/lus.json')
+                  json_path='res/json/lus.json',
+                  verbose=2)
 ```
 
 Please inspect **res/json/lus.json** for an example.

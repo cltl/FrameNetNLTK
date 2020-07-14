@@ -17,6 +17,11 @@ LEXEME_ATTRS = {
     'name'
 }
 
+OPTIONAL_LEXEME_ATTRS = {
+    'incorporatedFE',
+    'lu_id'
+}
+
 
 def validate_status(status):
     assert status in STATUS, f'{status} not part of accepted set: {STATUS}'
@@ -38,13 +43,25 @@ def validate_frame(your_fn, frame_name):
     except nltk.corpus.reader.framenet.FramenetError:
         raise KeyError(f'{frame_name} not part of your FrameNet.')
 
-def validate_lexeme(lexeme):
+
+def validate_lexeme(my_fn, lexeme):
     for lexeme_attr in LEXEME_ATTRS:
-        assert lexeme_attr in lexeme, f'missing atribute {lexeme_attr} in {lexeme} (required are {LEXEME_ATTRS}'
+        assert lexeme_attr in lexeme, \
+            f'missing atribute {lexeme_attr} in {lexeme} (required are {LEXEME_ATTRS}'
+
+    for lexeme_attr, value in lexeme.items():
+        assert lexeme_attr in LEXEME_ATTRS | OPTIONAL_LEXEME_ATTRS, \
+            f'{lexeme_attr} not part of allowed attributes. Please inspect.'
+
+        if lexeme_attr == 'lu_id':
+            assert int(value) in my_fn.lu_ids_and_names(), \
+                f'lu id {value} not found in your FrameNet. Please inspect.'
 
     int(lexeme['order'])
-    assert lexeme['headword'] in {'true', 'false'}, f'possible values for headword are "true" and "false". You specified {lexeme["headword"]}'
-    assert lexeme['breakBefore'] in {'true', 'false'}, f'possible values for breakBefore are "true" and "false". You specified {lexeme["breakBefore"]}'
+    assert lexeme['headword'] in {'true', 'false'}, \
+        f'possible values for headword are "true" and "false". You specified {lexeme["headword"]}'
+    assert lexeme['breakBefore'] in {'true', 'false'}, \
+        f'possible values for breakBefore are "true" and "false". You specified {lexeme["breakBefore"]}'
     validate_pos(pos=lexeme["POS"])
 
     name = lexeme['name']
@@ -52,14 +69,20 @@ def validate_lexeme(lexeme):
 
 
 def validate_order_attr(lexemes):
-    orders_gold = [str(i) for i in range(1, len(lexemes)+1)]
+    orders_gold = [str(i) for i in range(1, len(lexemes) + 1)]
     orders_provided = [lexeme['order'] for lexeme in lexemes]
 
     assert set(orders_gold) == set(orders_provided), f'Please inspect order attribute: {lexemes}'
 
-def validate_lexemes(lexemes):
+
+def validate_lexemes(my_fn, lexemes):
     for lexeme in lexemes:
-        validate_lexeme(lexeme=lexeme)
+        validate_lexeme(my_fn=my_fn, lexeme=lexeme)
+
+    if len(lexemes) == 1:
+        lexeme = lexemes[0]
+        assert 'lu_id' not in lexeme, \
+            f'the optional attribute lu_id is only allowed in multi-lexeme expressions. Please inspect.'
 
 
 def frames_with_lemma_pos_in_lexicon(your_fn, lemma, pos):
@@ -82,7 +105,8 @@ def validate_incorporated_fe(fn_en,
     Subsubsection 3.2.4 from the FrameNet book
     https://framenet2.icsi.berkeley.edu/docs/r1.7/book.pdf)
 
-    :param fe_en:
+    :param fn_en:
+    :param frame_label:
     :param incorporated_fe:
     :return:
     """
@@ -92,7 +116,6 @@ def validate_incorporated_fe(fn_en,
 
 def validate_incorporate_fe_lu_and_lexemes(incorporated_fe,
                                            lexemes):
-
     if len(lexemes) == 1:
         return
 
@@ -105,4 +128,5 @@ def validate_incorporate_fe_lu_and_lexemes(incorporated_fe,
     incorporated_fe_lu = set()
     if incorporated_fe is not None:
         incorporated_fe_lu.add(incorporated_fe)
-    assert incorporated_fes == incorporated_fe_lu, f'mismatch between incorporatedFE at LU level and in the lexemes: {incorporated_fe} {lexemes}'
+    assert incorporated_fes == incorporated_fe_lu,\
+        f'mismatch between incorporatedFE at LU level and in the lexemes: {incorporated_fe} {lexemes}'
