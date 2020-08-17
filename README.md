@@ -218,6 +218,20 @@ Point your browser to the URL shown in the terminal:
 * click on **luIndex.xml**
 * click on **frameIndex.xml**
 
+Function 8: descriptive statistics
+The Python module **stats_utils.py** contains a number of function to compute descriptive statistics.
+We highlight the following function:
+
+```python
+from FrameNetNLTK import load, get_stats_html
+
+my_fn = load(folder='test_lexicon')
+get_stats_html(your_fn=my_fn,
+               html_path='descriptive_statistics.html')
+```
+This will write an html file to disk containing the most important descriptive statistics
+about your FrameNet. Feel free to inspect the other functions in stats_utils.py for more functionality.
+
 ## Documentation
 The documentation can be found at **doc/FrameNetNLTK.md**.
 
