@@ -69,7 +69,7 @@ def get_lu_stats_df(your_fn):
     list_of_lists = []
     headers = ['Metric', 'Value']
 
-    one_row = ['total number of LUs', len(your_fn.lus())]
+    one_row = ['total number of LUs', str(len(your_fn.lus()))]
     list_of_lists.append(one_row)
 
     one_row = ['LUs per lexical frame', round(lus_per_lexical_frame, 1)]
