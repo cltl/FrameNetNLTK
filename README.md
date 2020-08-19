@@ -218,7 +218,7 @@ Point your browser to the URL shown in the terminal:
 * click on **luIndex.xml**
 * click on **frameIndex.xml**
 
-Function 8: descriptive statistics
+Function 9: descriptive statistics
 The Python module **stats_utils.py** contains a number of function to compute descriptive statistics.
 We highlight the following function:
 
