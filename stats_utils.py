@@ -135,15 +135,59 @@ def get_lexeme_stats_df(your_fn):
     return df
 
 
+def get_ambiguity_df(your_fn):
+    """
+    create table to show the ambiguity metrics of the framenet
+
+    :param nltk.corpus.reader.framenet.FramenetCorpusReader your_fn: your loaded NLTK FrameNet
+
+    :rtype: pandas.core.frame.DataFrame
+    :return: dataframe with two columns, one row per metric
+    """
+    lemma_pos_to_frames = defaultdict(set)
+
+    for lu in your_fn.lus():
+        frame_id = lu.frame.ID
+        lemma_pos_to_frames[lu.name].add(frame_id)
+
+    list_of_lists = []
+    headers = ['Lemma - pos', 'Num_evoked_frames']
+    for lemma_pos, frames in lemma_pos_to_frames.items():
+        one_row = [lemma_pos, len(frames)]
+        list_of_lists.append(one_row)
+
+    df = pandas.DataFrame(list_of_lists, columns=headers)
+
+    metrics = [('Minimum ambiguity', 'min'),
+               ('Mean ambiguity', 'mean'),
+               ('Maximum ambiguity', 'max')]
+
+    list_of_lists = []
+    headers = ['Metric', 'Value']
+    for label, function_name in metrics:
+        function = getattr(df, function_name)
+        value = function().Num_evoked_frames
+        one_row = [label, round(value, 1)]
+        list_of_lists.append(one_row)
+
+    stats_df = pandas.DataFrame(list_of_lists, columns=headers)
+
+    return stats_df
+
+
+
+
+
 def get_stats_html(your_fn,
                    html_path,
                    functions=(('Frame', 'get_frame_stats_df'),
                               ('LUs', 'get_lu_stats_df'),
                               ('LUs per POS', 'get_lu_per_pos_stats_df'),
-                              ('Lexemes per LU', 'get_lexeme_stats_df')),
+                              ('Lexemes per LU', 'get_lexeme_stats_df'),
+                              ('Ambiguity', 'get_ambiguity_df')),
                    verbose=0):
     """
-    Combin
+    Combine
     :param nltk.corpus.reader.framenet.FramenetCorpusReader your_fn: your loaded NLTK FrameNet
     :param str html_path: path to store your html page with the descriptive statistics
     :param tuple functions: tuple of tuples, each containing two strings:
