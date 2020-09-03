@@ -8,6 +8,8 @@ from .lexicon import add_lus_from_json
 
 from .lexicon import remove_lu
 
+from .lexicon_utils import get_luid
+
 from .stats_utils import get_frame_stats_df
 from .stats_utils import get_lu_stats_df
 from .stats_utils import get_lu_per_pos_stats_df

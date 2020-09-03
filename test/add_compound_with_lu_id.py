@@ -4,7 +4,7 @@ from nltk.corpus import framenet as fn
 sys.path.insert(0, '..')
 sys.path.insert(0, '../..')
 from FrameNetNLTK import add_lu, load
-from lexicon_utils import get_luid
+from FrameNetNLTK import get_luid
 
 lexemes = [{
     'order' : '1',

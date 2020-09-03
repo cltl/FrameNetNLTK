@@ -79,7 +79,7 @@ add_lu(your_lexicon_folder='test_lexicon',
 This will update the lexicon by adding a new LU to the frame **People_by_origin**.
 If the lemma and pos combination already exists for the chosen frame in the lexicon, it will not be added.
 
-We can also add LUs consisting of more than one lexeme:
+We can also add LUs consisting of more than one lexeme.
 ```python 
 from nltk.corpus import framenet as fn
 from FrameNetNLTK import add_lu
@@ -89,9 +89,8 @@ lexemes = [{
     'headword' : 'false',
     'breakBefore' : 'false',
     'POS' : 'N',
-    'name' : 'president',
+    'name' : 'senaat',
     'incorporatedFE' : 'Function',
-    'lu_id' : '1'
 },
 {
     'order' : '2',
@@ -106,14 +105,14 @@ lexemes = [{
     'breakBefore': 'false',
     'POS': 'N',
     'name': 'verkiezing',
-    'lu_id' : '2'
 }
 ]
+
 add_lu(your_lexicon_folder='test_lexicon',
        fn_en=fn,
        lexemes=lexemes,
-       definition='het proces van het kiezen van een president.',
-       status='New',
+       definition='het proces van het kiezen van een senator.',
+       status='Created',
        pos='N',
        frame='Change_of_leadership',
        provenance='manual',
@@ -121,13 +120,13 @@ add_lu(your_lexicon_folder='test_lexicon',
        verbose=2)
 ```
 
-We highlight the optional attribute that is shown in the example, which is **lu_id**.
+We highlight that there is an optional lexeme attribute, which is **lu_id**.
 In the case of endocentric compounds, as shown above with *presidentsverkiezing*, we
 allow the user to link the specific lexemes to the LU that they refer to.
-Before adding the example above, we have already added an LU for *president* and for *verkiezing* (you can use *lexicon_utils.get_luid* to obtain an lu_id).
-In the process of adding the endocentric compound to the lexicon, we also link the lexemes to their LUs.
-
-
+For example, it is possible to first add an LU for "president" and for "verkiezing".
+When adding the entire compound "presidentsverkiezing", it is possible
+to indicate the LU that each lexeme refers to.
+We refer to **test/add_compound_with_lu_id.py** for an example.
 
 Function 4: remove a lexical unit
 
