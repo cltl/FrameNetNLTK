@@ -31,11 +31,13 @@ lexemes = [{
 
 add_lu(your_lexicon_folder='test_lexicon',
        fn_en=fn,
+       lu_name="senaatsverkiezing.n",
        lexemes=lexemes,
        definition='het proces van het kiezen van een senator.',
        status='Created',
        pos='N',
        frame='Change_of_leadership',
        provenance='manual',
+       lu_type="endocentric compound",
        incorporated_fe="Function",
        verbose=2)

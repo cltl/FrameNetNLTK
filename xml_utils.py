@@ -110,6 +110,7 @@ def create_lu_xml_file(fn_en,
                        lemma,
                        pos,
                        definition,
+                       lu_type,
                        incorporated_fe=None,
                        optional_lu_attrs={}):
     frame = fn_en.frame_by_name(frame)
@@ -135,6 +136,7 @@ def create_lu_xml_file(fn_en,
     root.set('name', f'{lemma}.{pos.lower()}')
     root.set('totalAnnotated', '0')
     root.set('ID', str(lu_id))
+    root.set('lu_type', lu_type)
 
     if incorporated_fe is not None:
         root.set('incorporatedFE', incorporated_fe)
@@ -181,6 +183,7 @@ def add_lu_el_to_luindex(path_lu_index,
                          lemma,
                          pos,
                          lu_id,
+                         lu_type,
                          optional_lu_attrs={}):
     parser = etree.XMLParser(remove_blank_text=True)
     doc = etree.parse(path_lu_index, parser)
@@ -194,6 +197,7 @@ def add_lu_el_to_luindex(path_lu_index,
                               'frameName': frame_name,
                               'status': status,
                               'name': f'{lemma}.{pos.lower()}',
+                              'lu_type': lu_type,
                               'ID': str(lu_id)
                           })
 
@@ -219,6 +223,7 @@ def add_lu_to_frame_xml_file(your_fn,
                              provenance,
                              cdate,
                              definition,
+                             lu_type,
                              incorporated_fe=None,
                              optional_lu_attrs={}):
     frame_xml_path = os.path.join(your_fn.root,
@@ -238,6 +243,7 @@ def add_lu_to_frame_xml_file(your_fn,
                               'lemmaID': str(lemma_id),
                               'cBy': provenance,
                               'cDate': cdate,
+                              'lu_type' : lu_type
                           })
     if incorporated_fe is not None:
         lu_el.set('incorporatedFE', incorporated_fe)

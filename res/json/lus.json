@@ -7,11 +7,13 @@
             "POS" : "N",
             "name" : "Californiër"
         }],
+      "lu_name" : "Californiër.n",
       "definition" : "van Californië",
       "status" : "Created",
       "POS" : "N",
       "frame" : "People_by_origin",
       "provenance" : "manual",
+      "lu_type" : "singleton",
       "incorporated_fe" : "Origin",
       "timestamp" : [2020, 6, 29],
       "optional_lu_attrs" : {}
@@ -23,11 +25,13 @@
             "POS" : "N",
             "name" : "Fransman"
         }],
+      "lu_name" : "Fransman.n",
       "definition" : "uit Frankrijk",
       "status" : "Created",
       "POS" : "N",
       "frame" : "People_by_origin",
       "provenance" : "manual",
+      "lu_type" : "singleton",
       "incorporated_fe" : "Origin",
       "timestamp" : null,
           "optional_lu_attrs" : {}

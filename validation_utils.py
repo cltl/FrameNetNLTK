@@ -22,6 +22,13 @@ OPTIONAL_LEXEME_ATTRS = {
     'lu_id'
 }
 
+TYPES = {
+    'singleton',
+    'phrasal',
+    'idiom',
+    'endocentric compound',
+    'exocentric compound'
+}
 
 def validate_status(status):
     assert status in STATUS, f'{status} not part of accepted set: {STATUS}'
@@ -130,3 +137,11 @@ def validate_incorporate_fe_lu_and_lexemes(incorporated_fe,
         incorporated_fe_lu.add(incorporated_fe)
     assert incorporated_fes == incorporated_fe_lu,\
         f'mismatch between incorporatedFE at LU level and in the lexemes: {incorporated_fe} {lexemes}'
+
+
+def validate_lu_type(lu_type):
+    assert lu_type in TYPES, f'type {lu_type} is not part of the accepted set: {TYPES}'
+
+
+def validate_lu_pos(lu_pos, pos):
+    assert lu_pos == pos.lower(), f'different POS provided for lu_name and pos of lu: {lu_pos} and {pos}'

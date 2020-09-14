@@ -67,12 +67,14 @@ lexemes = [{
 
 add_lu(your_lexicon_folder='test_lexicon',
        fn_en=fn,
+       lu_name="Californiër.n",
        lexemes=lexemes,
        definition='van Calfornië',
        status='Created',
        pos='N',
        frame='People_by_origin',
        provenance='manual',
+       lu_type='singleton',
        incorporated_fe="Origin",
        verbose=2)
 ```
@@ -110,16 +112,25 @@ lexemes = [{
 
 add_lu(your_lexicon_folder='test_lexicon',
        fn_en=fn,
+       lu_name="presidentsverkiezing.n",
        lexemes=lexemes,
        definition='het proces van het kiezen van een senator.',
        status='Created',
        pos='N',
        frame='Change_of_leadership',
        provenance='manual',
+       lu_type="endocentric compound",
        incorporated_fe="Function",
        verbose=2)
 ```
 
+Please note that there are five possible values for **lu_type**:
+    * singleton
+    * idiom
+    * phrasal
+    * endocentric compound
+    * exocentric compound
+ 
 We highlight that there is an optional lexeme attribute, which is **lu_id**.
 In the case of endocentric compounds, as shown above with *presidentsverkiezing*, we
 allow the user to link the specific lexemes to the LU that they refer to.
@@ -168,12 +179,14 @@ lexemes = [{
 
 add_lu(your_lexicon_folder='test_lexicon',
        fn_en=fn,
+       lu_name="Duitser.n",
        lexemes=lexemes,
        definition='uit Duitsland',
        status='New',
        pos='N',
        frame='People_by_origin',
        provenance='manual',
+       lu_type="singleton",
        incorporated_fe="Origin",
        optional_lu_attrs={"RBN_LU_ID" : "r_n-11800", 
                           "Method" : "manual",

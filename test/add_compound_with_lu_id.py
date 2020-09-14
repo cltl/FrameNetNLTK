@@ -16,12 +16,14 @@ lexemes = [{
 
 add_lu(your_lexicon_folder='test_lexicon',
        fn_en=fn,
+       lu_name='president.n',
        lexemes=lexemes,
        definition='een gekozen functionaris met regerende macht over een republikeinse staat, universiteit of bedrijf.',
        status='Created',
        pos='N',
        frame='Appellations',
        provenance='manual',
+       lu_type='singleton',
        incorporated_fe="Title",
        verbose=2)
 
@@ -36,27 +38,28 @@ lexemes = [{
 
 add_lu(your_lexicon_folder='test_lexicon',
        fn_en=fn,
+       lu_name='verkiezing.n',
        lexemes=lexemes,
        definition='een formele procedure waarbij een persoon gekozen wordt.',
        status='Created',
        pos='N',
        frame='Change_of_leadership',
        provenance='manual',
+       lu_type='singleton',
        verbose=2)
 
 
 my_fn = load('test_lexicon')
 president_lu_id, reason = get_luid(my_fn=my_fn,
-                           frame_label='Appellations',
-                           lemma='president',
-                           pos='N')
+                                   frame_label='Appellations',
+                                   lemma='president',
+                                   pos='N')
 
 
 verkiezing_lu_id, reason = get_luid(my_fn=my_fn,
                                     frame_label='Change_of_leadership',
                                     lemma="verkiezing",
                                     pos="N")
-
 
 lexemes = [{
     'order' : '1',
@@ -85,12 +88,14 @@ lexemes = [{
 ]
 add_lu(your_lexicon_folder='test_lexicon',
        fn_en=fn,
+       lu_name='presidentsverkiezing.n',
        lexemes=lexemes,
        definition='het proces van het kiezen van een president.',
        status='Created',
        pos='N',
        frame='Change_of_leadership',
        provenance='manual',
+       lu_type='endocentric compound',
        incorporated_fe="Function",
        verbose=2)
 
@@ -104,12 +109,14 @@ lexemes = [{
 
 add_lu(your_lexicon_folder='test_lexicon',
        fn_en=fn,
+       lu_name='Duitser.n',
        lexemes=lexemes,
        definition='uit Duitsland',
        status='Created',
        pos='N',
        frame='People_by_origin',
        provenance='manual',
+       lu_type='singleton',
        incorporated_fe="Origin",
        optional_lu_attrs={"RBN_sense_ID" : "r_n-11800", "RBN_matching_relation" : "equivalence"},
        verbose=2)

@@ -19,6 +19,15 @@ def test_keyerror_for_frame():
     with pytest.raises(KeyError):
         validation_utils.validate_frame(your_fn=fn, frame_name='hello')
 
+def test_lu_name():
+    lu_lemma, lu_pos = lexicon_utils.get_lemma_pos_from_lu_name(lu_name='a.b.c.n')
+    assert all([lu_lemma == 'a.b.c',
+                lu_pos == 'n'])
+
+def test_lu_pos():
+    with pytest.raises(AssertionError):
+        validation_utils.validate_lu_pos(lu_pos='N', pos='A')
+
 def test_assertion_error_for_lexeme_1():
     with pytest.raises(AssertionError):
         validation_utils.validate_lexeme(my_fn=fn, lexeme={'a' : 1})
@@ -80,6 +89,12 @@ def test_new_lemma_id():
                                            pos='N')
     assert new_lu_id == 52179
 
+
+def test_assertion_error_type():
+    with pytest.raises(AssertionError):
+        validation_utils.validate_lu_type(lu_type='blabla')
+
+
 def test_existing_lemma_id():
     new_lu_id = lexicon_utils.get_lemma_id(fn,
                                            lemma='surrender',
@@ -133,9 +148,14 @@ def test_lu_id_not_found():
                                            pos="A")
     assert lu_id is None
 
+test_assertion_error_type()
 test_assertion_error_for_status()
 test_assertion_error_for_pos()
 test_keyerror_for_frame()
+
+test_lu_name()
+test_lu_pos()
+
 test_assertion_error_for_lexeme_1()
 test_assertion_error_for_lexeme_2()
 test_assertion_error_for_lexeme_3()

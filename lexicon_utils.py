@@ -7,6 +7,10 @@ def get_next_lu_id(your_fn):
         new_lu_id = 1
     return new_lu_id
 
+def get_lemma_pos_from_lu_name(lu_name):
+    lemma, pos = lu_name.rsplit('.', 1)
+    return lemma, pos
+
 
 def get_lemma_id(your_fn,
                  lemma,
