@@ -10,6 +10,12 @@ from . import path_utils
 from . import load_utils
 
 
+
+SUPPORTED_LANGUAGES = {
+    'en',
+    'nl'
+}
+
 def add_lu(your_lexicon_folder,
            fn_en,
            lu_name,
@@ -31,13 +37,17 @@ def add_lu(your_lexicon_folder,
     lu_lemma, lu_pos = lexicon_utils.get_lemma_pos_from_lu_name(lu_name=lu_name)
 
     # attribute validation steps
+    validation_utils.validate_lu_type(lu_type)
+    validation_utils.validate_num_lexemes(lexemes, lu_type)
     validation_utils.validate_lu_pos(lu_pos, pos)
     validation_utils.validate_lexemes(my_fn=your_fn, lexemes=lexemes)
     validation_utils.validate_order_attr(lexemes=lexemes)
     validation_utils.validate_status(status=status)
     validation_utils.validate_pos(pos=pos)
     validation_utils.validate_frame(your_fn=your_fn, frame_name=frame)
-    validation_utils.validate_lu_type(lu_type)
+    validation_utils.validate_lexemes_vs_luname(lexemes=lexemes,
+                                                lu_type=lu_type,
+                                                lu_lemma=lu_lemma)
 
     if incorporated_fe is not None:
         validation_utils.validate_incorporated_fe(fn_en=fn_en,
@@ -64,7 +74,7 @@ def add_lu(your_lexicon_folder,
     # get relevant paths
     paths_your_fn = path_utils.get_relevant_paths(your_fn.root, check_if_exists=False)
 
-    lu_id = lexicon_utils.get_next_lu_id(your_fn=your_fn)
+    lu_id = lexicon_utils.get_next_lu_id()
     lemma_id = lexicon_utils.get_lemma_id(your_fn=your_fn,
                                           lemma=lu_lemma,
                                           pos=pos)
@@ -213,3 +223,36 @@ def remove_lu(your_lexicon_folder,
 
     succes = True
     return succes
+
+
+def generate_lu_rdf_uri(your_fn,
+                        namespace,
+                        language,
+                        major_version,
+                        minor_version,
+                        lu_id):
+    """
+
+    :param str namespace: the RDF namespace, e.g., http://rdf.cltl.nl/
+    :param str language: supported: nl | en
+    :param int major_version: the major version
+    :param int minor_version: the minor version
+    :return:
+    """
+    error_message = f'there is no lu for the provided lu_id ({lu_id}) in the provided FrameNet'
+    assert lu_id in your_fn.lu_ids_and_names(), error_message
+
+    error_message = f'the provided language ({language}) is not supported: {SUPPORTED_LANGUAGES}'
+    assert language in SUPPORTED_LANGUAGES, error_message
+
+    assert namespace.endswith('/'), 'namespace should end with a forward slash'
+    assert namespace.startswith('http'), 'namespace should start with http'
+
+    for version in [major_version, minor_version]:
+        error_message = f'expecting an integer for the minor and major version, you provided: {type(version)}'
+        assert type(version) == int, error_message
+
+    lu_rdf_uri = f'{namespace}fn_{language}-{major_version}.{minor_version}-{lu_id}'
+    return lu_rdf_uri
+
+

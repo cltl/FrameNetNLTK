@@ -2,6 +2,10 @@ import os
 import shutil
 from glob import glob
 
+def get_lexicon_name(my_fn):
+    root = my_fn.root.path
+    return os.path.basename(root)
+
 
 def remove_and_create_folder(fldr, verbose=0):
     """
@@ -30,7 +34,7 @@ def get_relevant_paths(root, check_if_exists=True):
         ('lu_dir', 'lu'),
         ('lexUnit.xsl', 'lu/lexUnit.xsl'),
         ('frame_dir', 'frame'),
-        ('frame.xsl', 'frame/frame.xsl')
+        ('frame.xsl', 'frame/frame.xsl'),
     ]
 
     for label, basename in label_and_basenames:

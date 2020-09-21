@@ -1,11 +1,9 @@
-def get_next_lu_id(your_fn):
-    lu_ids_and_names = your_fn.lu_ids_and_names()
-    if lu_ids_and_names:
-        highest = max(lu_ids_and_names)
-        new_lu_id = highest + 1
-    else:
-        new_lu_id = 1
-    return new_lu_id
+import time
+
+def get_next_lu_id():
+    milliseconds = int(round(time.time() * 1000))
+    return milliseconds
+
 
 def get_lemma_pos_from_lu_name(lu_name):
     lemma, pos = lu_name.rsplit('.', 1)
@@ -39,41 +37,6 @@ def get_lemma_id(your_fn,
         chosen_lemma_id = maximum + 1
 
     return chosen_lemma_id
-
-
-def create_lemma(lexemes):
-    order_to_lexeme = dict()
-    for lexeme in lexemes:
-        order_to_lexeme[int(lexeme['order'])] = lexeme
-
-    parts = []
-    for order, lexeme in sorted(order_to_lexeme.items()):
-
-        prefix = ''
-        if lexeme['breakBefore'] == 'true':
-            prefix = ' '
-        parts.append(prefix + lexeme['name'])
-
-    lemma = ''.join(parts)
-    return lemma
-
-
-the_lexemes = [{
-    'order': '1',
-    'headword': 'false',
-    'breakBefore': 'false',
-    'POS': 'V',
-    'name': 'give'
-},
-    {
-        'order': '2',
-        'headword': 'false',
-        'breakBefore': 'true',
-        'POS': 'A',
-        'name': 'up'
-    }
-]
-assert create_lemma(lexemes=the_lexemes) == 'give up'
 
 
 def get_luid(my_fn,

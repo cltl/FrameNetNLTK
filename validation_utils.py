@@ -1,5 +1,6 @@
 import nltk
 
+
 STATUS = {'Unknown', 'FN1_Sent', 'Test', 'Add_Annotation',
           'New', 'Finished_Checked', 'FN1_NoSent',
           'Rules_Defined', 'SC_Defined', 'In_Use', 'Finished_Initial',
@@ -29,6 +30,39 @@ TYPES = {
     'endocentric compound',
     'exocentric compound'
 }
+
+def create_lemma(lexemes, separator=''):
+    order_to_lexeme = dict()
+    for lexeme in lexemes:
+        order_to_lexeme[int(lexeme['order'])] = lexeme
+
+    parts = []
+    for order, lexeme in sorted(order_to_lexeme.items()):
+        if order == 1:
+            parts.append(lexeme['name'])
+        elif order >= 2:
+            parts.append(separator + lexeme['name'])
+
+    lemma = ''.join(parts)
+    return lemma
+
+
+the_lexemes = [{
+    'order': '1',
+    'headword': 'false',
+    'breakBefore': 'false',
+    'POS': 'V',
+    'name': 'give'
+},
+    {
+        'order': '2',
+        'headword': 'false',
+        'breakBefore': 'false',
+        'POS': 'A',
+        'name': 'up'
+    }
+]
+assert create_lemma(lexemes=the_lexemes, separator=' ') == 'give up'
 
 def validate_status(status):
     assert status in STATUS, f'{status} not part of accepted set: {STATUS}'
@@ -145,3 +179,38 @@ def validate_lu_type(lu_type):
 
 def validate_lu_pos(lu_pos, pos):
     assert lu_pos == pos.lower(), f'different POS provided for lu_name and pos of lu: {lu_pos} and {pos}'
+
+
+def validate_num_lexemes(lexemes, lu_type):
+    if lu_type in {'singleton'}:
+        assert len(lexemes) == 1, f'for lu_type {lu_type} the number of lexemes should be one, you provided {len(lexemes)}.'
+
+    elif lu_type in {'phrasal',
+                     'endocentric compound'}:
+        assert len(lexemes) >= 2, f'for lu_type {lu_type} the number of lexemes should be 2>, you provided {len(lexemes)}.'
+
+
+def validate_lexemes_vs_luname(lexemes, lu_type, lu_lemma):
+    if lu_type == 'singleton':
+        lexeme = lexemes[0]['name']
+        assert lexeme == lu_lemma, f'for lu_type singleton, the lu_name ({lu_lemma}) and lexeme ({lexeme}) should match.'
+    elif lu_type == 'endocentric compound':
+        recreated_lemma = create_lemma(lexemes=lexemes,
+                                       separator='')
+
+        parts = [f'recreated lemma from lexemes ({recreated_lemma}) does not match the lu_name ({lu_lemma})',
+                 f'for the chosen lu_type ({lu_type}), this is needed.']
+        error_message = '\n'.join(parts)
+        assert lu_lemma == recreated_lemma, error_message
+    elif lu_type in {'idiom',
+                     'phrasal',
+                     'exocentric compound'}:
+        for lexeme in lexemes:
+            name = lexeme['name']
+            parts = [f'lexeme: {name} is not part of the lu_lemma ({lu_lemma})']
+            error_message = '\n'.join(parts)
+            print(name, lu_lemma)
+            assert name in lu_lemma, error_message
+
+
+

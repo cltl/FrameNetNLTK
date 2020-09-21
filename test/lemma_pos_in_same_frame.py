@@ -16,6 +16,7 @@ lexemes = [{
 
 add_lu(your_lexicon_folder='test_lexicon',
        fn_en=fn,
+       lu_name="Mexicaan.n",
        lexemes=lexemes,
        definition='uit Mexico',
        status='Created',
@@ -29,6 +30,7 @@ add_lu(your_lexicon_folder='test_lexicon',
 def test_twice_the_same():
     add_lu(your_lexicon_folder='test_lexicon',
            fn_en=fn,
+           lu_name="Mexicaan.n",
            lexemes=lexemes,
            definition='uit Mexico',
            status='Created',

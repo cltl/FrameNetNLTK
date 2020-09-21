@@ -5,6 +5,8 @@ sys.path.append('../')
 
 import validation_utils
 import lexicon_utils
+
+
 from nltk.corpus import framenet as fn
 
 def test_assertion_error_for_status():
@@ -80,8 +82,9 @@ def test_assertion_error_for_lexeme_5():
         validation_utils.validate_lexemes(my_fn=fn,
                                           lexemes=lexemes)
 def test_new_lu_id():
-    new_lu_id = lexicon_utils.get_next_lu_id(fn)
-    assert new_lu_id == 18821
+    new_lu_id = lexicon_utils.get_next_lu_id()
+    assert type(new_lu_id) == int
+    assert len(str(new_lu_id)) == 13
 
 def test_new_lemma_id():
     new_lu_id = lexicon_utils.get_lemma_id(fn,
@@ -148,6 +151,38 @@ def test_lu_id_not_found():
                                            pos="A")
     assert lu_id is None
 
+
+def test_lu_type_singleton_num_lexemes():
+    with pytest.raises(AssertionError):
+        validation_utils.validate_num_lexemes(lexemes=[{}, {}],
+                                              lu_type='singleton')
+
+def test_lu_type_phrasal_num_lexemes():
+    with pytest.raises(AssertionError):
+        validation_utils.validate_num_lexemes(lexemes=[{}],
+                                              lu_type='phrasal')
+
+def test_lexemes_luname_singleton():
+    with pytest.raises(AssertionError):
+        validation_utils.validate_lexemes_vs_luname(lexemes=[{'name': 'house'}],
+                                                    lu_type='singleton',
+                                                    lu_lemma='houses')
+
+
+def test_lexemes_luname_endocentric():
+    with pytest.raises(AssertionError):
+        validation_utils.validate_lexemes_vs_luname(lexemes=[{'name': 'president', 'order': '1'},
+                                                             {'name': 'verkiezing', 'order': '2'}],
+                                                    lu_type='endocentric compound',
+                                                    lu_lemma='presidentsverkiezing')
+
+def test_lexemes_luname_substring():
+    with pytest.raises(AssertionError):
+        validation_utils.validate_lexemes_vs_luname(lexemes=[{'name': 'rode', 'order': '1'},
+                                                             {'name': 'borstje', 'order': '2'}],
+                                                    lu_type='exocentric compound',
+                                                    lu_lemma='roodborstje')
+
 test_assertion_error_type()
 test_assertion_error_for_status()
 test_assertion_error_for_pos()
@@ -174,3 +209,8 @@ test_error_incorporated_fe_lu_and_lexemes()
 
 test_lu_id_found()
 test_lu_id_not_found()
+
+test_lu_type_singleton_num_lexemes()
+test_lu_type_phrasal_num_lexemes()
+test_lexemes_luname_singleton()
+test_lexemes_luname_substring()

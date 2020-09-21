@@ -4,12 +4,15 @@ from nltk.corpus import framenet as fn
 
 sys.path.insert(0, '..')
 sys.path.insert(0, '../..')
-from FrameNetNLTK import get_luid
+from FrameNetNLTK import load, get_luid
+
+fn = load('../test/test_lexicon')
 
 
 lu_id, reason = get_luid(my_fn=fn,
                          frame_label='Change_of_leadership',
-                         lemma='election',
+                         lemma='verkiezing',
                          pos='N')
 
-assert lu_id == 10900
+assert type(lu_id) == int
+assert len(str(lu_id)) == 13

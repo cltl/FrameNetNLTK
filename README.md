@@ -125,11 +125,11 @@ add_lu(your_lexicon_folder='test_lexicon',
 ```
 
 Please note that there are five possible values for **lu_type**:
-    * singleton
-    * idiom
-    * phrasal
-    * endocentric compound
-    * exocentric compound
+* singleton
+* idiom
+* phrasal
+* endocentric compound
+* exocentric compound
  
 We highlight that there is an optional lexeme attribute, which is **lu_id**.
 In the case of endocentric compounds, as shown above with *presidentsverkiezing*, we
@@ -142,10 +142,17 @@ We refer to **test/add_compound_with_lu_id.py** for an example.
 Function 4: remove a lexical unit
 
 ```python
-from FrameNetNLTK import remove_lu
+from FrameNetNLTK import load, remove_lu, get_luid
+
+fn = load('test_lexicon')
+
+lu_id, reason = get_luid(my_fn=fn,
+                         frame_label='People_by_origin',
+                         lemma='Duitser',
+                         pos='N')
 
 remove_lu(your_lexicon_folder='test_lexicon',
-          lu_id=1,
+          lu_id=lu_id,
           verbose=2)
 ```
 This will remove all information relating to the lexical unit with identifier 1.
@@ -243,6 +250,35 @@ get_stats_html(your_fn=my_fn,
 ```
 This will write an html file to disk containing the most important descriptive statistics
 about your FrameNet. Feel free to inspect the other functions in stats_utils.py for more functionality.
+
+Function 10: LU RDF URI
+We expose a function to generate a RDF URI for an LU
+
+```python
+from FrameNetNLTK import load, get_luid, generate_lu_rdf_uri
+
+my_fn = load('test_lexicon')
+
+lu_id, reason = get_luid(my_fn=my_fn,
+                         frame_label='Change_of_leadership',
+                         lemma='verkiezing',
+                         pos='N')
+
+lu_rdf_uri = generate_lu_rdf_uri(your_fn=my_fn,
+                    namespace='http://rdf.cltl.nl/',
+                    language='nl',
+                    major_version=0,
+                    minor_version=1,
+                    lu_id=lu_id)
+
+>>> print(lu_rdf_uri)
+http://rdf.cltl.nl/fn_nl-0.1-1600685456081
+
+```
+The syntax to generate the RDF LU URI is:
+* f'{namespace}fn_{language}-{major_version}.{minor_version}-{lu_id}'
+
+This means that a URI is generated for a LANGUAGE with MAJOR_VERSION.MINOR_VERSION.
 
 ## Documentation
 The documentation can be found at **doc/FrameNetNLTK.md**.
