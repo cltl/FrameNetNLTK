@@ -32,7 +32,7 @@ def test_lu_pos():
 
 def test_assertion_error_for_lexeme_1():
     with pytest.raises(AssertionError):
-        validation_utils.validate_lexeme(my_fn=fn, lexeme={'a' : 1})
+        validation_utils.validate_lexeme(my_fn=fn, lexeme={'a' : 1}, lu_type='singleton')
 
 def test_assertion_error_for_lexeme_2():
     with pytest.raises(ValueError):
@@ -43,7 +43,7 @@ def test_assertion_error_for_lexeme_2():
             'POS' : 'N',
             'name' : 'surrender'
         }
-        validation_utils.validate_lexeme(my_fn=fn, lexeme=lexeme)
+        validation_utils.validate_lexeme(my_fn=fn, lexeme=lexeme, lu_type='singleton')
 
 def test_assertion_error_for_lexeme_3():
     with pytest.raises(AssertionError):
@@ -54,7 +54,7 @@ def test_assertion_error_for_lexeme_3():
             'POS' : 'N',
             'name' : 'surrender'
         }
-        validation_utils.validate_lexeme(my_fn=fn, lexeme=lexeme)
+        validation_utils.validate_lexeme(my_fn=fn, lexeme=lexeme, lu_type='singleton')
 
 def test_assertion_error_for_lexeme_4():
     with pytest.raises(AssertionError):
@@ -65,7 +65,7 @@ def test_assertion_error_for_lexeme_4():
             'POS' : 'N',
             'name' : 'surrender'
         }
-        validation_utils.validate_lexeme(my_fn=fn, lexeme=lexeme)
+        validation_utils.validate_lexeme(my_fn=fn, lexeme=lexeme, lu_type='singleton')
 
 
 def test_assertion_error_for_lexeme_5():
@@ -80,7 +80,8 @@ def test_assertion_error_for_lexeme_5():
             'lu_id' : '1'
         }]
         validation_utils.validate_lexemes(my_fn=fn,
-                                          lexemes=lexemes)
+                                          lexemes=lexemes,
+                                          lu_type='singleton')
 def test_new_lu_id():
     new_lu_id = lexicon_utils.get_next_lu_id()
     assert type(new_lu_id) == int

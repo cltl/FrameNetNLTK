@@ -85,8 +85,15 @@ def validate_frame(your_fn, frame_name):
         raise KeyError(f'{frame_name} not part of your FrameNet.')
 
 
-def validate_lexeme(my_fn, lexeme):
+def validate_lexeme(my_fn, lexeme, lu_type):
     for lexeme_attr in LEXEME_ATTRS:
+
+        # a lexeme of a phrasal verb does not need to have a POS attribute
+        # we do not specify it for the verb particle
+        if all([lu_type == 'phrasal',
+                lexeme_attr == 'POS']):
+            continue
+
         assert lexeme_attr in lexeme, \
             f'missing atribute {lexeme_attr} in {lexeme} (required are {LEXEME_ATTRS}'
 
@@ -103,7 +110,9 @@ def validate_lexeme(my_fn, lexeme):
         f'possible values for headword are "true" and "false". You specified {lexeme["headword"]}'
     assert lexeme['breakBefore'] in {'true', 'false'}, \
         f'possible values for breakBefore are "true" and "false". You specified {lexeme["breakBefore"]}'
-    validate_pos(pos=lexeme["POS"])
+
+    if 'POS' in lexeme:
+        validate_pos(pos=lexeme["POS"])
 
     name = lexeme['name']
     assert type(name) == str, f'the name of lexeme should be a string, you provided a {type(name)}.'
@@ -116,9 +125,9 @@ def validate_order_attr(lexemes):
     assert set(orders_gold) == set(orders_provided), f'Please inspect order attribute: {lexemes}'
 
 
-def validate_lexemes(my_fn, lexemes):
+def validate_lexemes(my_fn, lexemes, lu_type):
     for lexeme in lexemes:
-        validate_lexeme(my_fn=my_fn, lexeme=lexeme)
+        validate_lexeme(my_fn=my_fn, lexeme=lexeme, lu_type=lu_type)
 
     if len(lexemes) == 1:
         lexeme = lexemes[0]
@@ -209,8 +218,5 @@ def validate_lexemes_vs_luname(lexemes, lu_type, lu_lemma):
             name = lexeme['name']
             parts = [f'lexeme: {name} is not part of the lu_lemma ({lu_lemma})']
             error_message = '\n'.join(parts)
-            print(name, lu_lemma)
             assert name in lu_lemma, error_message
-
-
 

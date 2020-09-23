@@ -40,7 +40,7 @@ def add_lu(your_lexicon_folder,
     validation_utils.validate_lu_type(lu_type)
     validation_utils.validate_num_lexemes(lexemes, lu_type)
     validation_utils.validate_lu_pos(lu_pos, pos)
-    validation_utils.validate_lexemes(my_fn=your_fn, lexemes=lexemes)
+    validation_utils.validate_lexemes(my_fn=your_fn, lexemes=lexemes, lu_type=lu_type)
     validation_utils.validate_order_attr(lexemes=lexemes)
     validation_utils.validate_status(status=status)
     validation_utils.validate_pos(pos=pos)
