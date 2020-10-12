@@ -5,6 +5,7 @@ sys.path.append('../')
 
 import validation_utils
 import lexicon_utils
+import rdf_utils
 
 
 from nltk.corpus import framenet as fn
@@ -184,34 +185,20 @@ def test_lexemes_luname_substring():
                                                     lu_type='exocentric compound',
                                                     lu_lemma='roodborstje')
 
-test_assertion_error_type()
-test_assertion_error_for_status()
-test_assertion_error_for_pos()
-test_keyerror_for_frame()
 
-test_lu_name()
-test_lu_pos()
+def test_lexicon_uri():
+    uri = rdf_utils.generate_lexicon_rdf_uri(namespace='http://rdf.cltl.nl/',
+                                             language='nl',
+                                             major_version=0,
+                                             minor_version=1)
+    assert uri == 'http://rdf.cltl.nl/fn_nl-lexicon-0.1'
 
-test_assertion_error_for_lexeme_1()
-test_assertion_error_for_lexeme_2()
-test_assertion_error_for_lexeme_3()
-test_assertion_error_for_lexeme_4()
-test_assertion_error_for_lexeme_5()
 
-test_new_lu_id()
-test_new_lemma_id()
-test_existing_lemma_id()
-test_incorporated_fe()
-test_error_incorporated_fe()
-test_order()
-test_error_order()
-test_incorporated_fe_lu_and_lexemes()
-test_error_incorporated_fe_lu_and_lexemes()
-
-test_lu_id_found()
-test_lu_id_not_found()
-
-test_lu_type_singleton_num_lexemes()
-test_lu_type_phrasal_num_lexemes()
-test_lexemes_luname_singleton()
-test_lexemes_luname_substring()
+def test_lu_uri():
+    uri = rdf_utils.generate_lu_rdf_uri(your_fn=fn,
+                                        namespace='http://rdf.cltl.nl/',
+                                        language='en',
+                                        major_version=1,
+                                        minor_version=7,
+                                        lu_id=14160)
+    assert uri == 'http://rdf.cltl.nl/fn_en-lexicon-1.7-lu-14160'

@@ -8,11 +8,11 @@ from .lexicon import add_lus_from_json
 
 from .lexicon import remove_lu
 
-from .lexicon import generate_lu_rdf_uri
-
 from .lexicon_utils import get_luid
 
-
+# rdf
+from .rdf_utils import generate_lexicon_rdf_uri
+from .rdf_utils import generate_lu_rdf_uri
 
 # annotations
 # TODO: add_annotations_from_naf_3.1
