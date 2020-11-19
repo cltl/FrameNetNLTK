@@ -255,7 +255,7 @@ Function 10: LU RDF URI
 We expose a function to generate a RDF URI for an LU
 
 ```python
-from FrameNetNLTK import load, get_luid, generate_lu_rdf_uri, generate_lexicon_rdf_uri
+from FrameNetNLTK import load, get_luid, generate_lu_rdf_uri, generate_le_and_lu_rdf_uri
 
 my_fn = load('test_lexicon')
 
@@ -264,23 +264,23 @@ lu_id, reason = get_luid(my_fn=my_fn,
                          lemma='verkiezing',
                          pos='N')
 
-lexicon_uri = generate_lexicon_rdf_uri(namespace='http://rdf.cltl.nl/',
-                                             language='nl',
+lexicon_uri = generate_lexicon_rdf_uri(namespace='http://rdf.cltl.nl/dfn/',
+                                             language='nld',
                                              major_version=0,
                                              minor_version=1)
 >>>print(lexicon_uri)
 http://rdf.cltl.nl/fn_nl-lexicon-0.1
 
 
-lu_rdf_uri = generate_lu_rdf_uri(your_fn=my_fn,
-                                 namespace='http://rdf.cltl.nl/',
-                                 language='nl',
+le_rdf_uri, leform_rdf_uri, lu_rdf_uri = generate_le_and_lu_rdf_uri(your_fn=my_fn,
+                                 namespace='http://rdf.cltl.nl/dfn/',
+                                 language='nld',
                                  major_version=0,
                                  minor_version=1,
                                  lu_id=lu_id)
 
 >>> print(lu_rdf_uri)
-http://rdf.cltl.nl/fn_nl-lexicon-0.1-lu-1600860990463
+http://rdf.cltl.nl/dfn/fn_nld-lexicon-0.1-lu-1600860990463
 ```
 The syntax to generate the RDF LU URI is:
 * f'{namespace}fn_{language}-lexicon-{major_version}.{minor_version}-lu-{lu_id}'
