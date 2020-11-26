@@ -1,4 +1,5 @@
 import os
+import pickle
 import json
 from rdflib import Graph
 
@@ -39,12 +40,16 @@ from .stats_utils import get_ambiguity_df
 
 # load
 dir_path = os.path.dirname(os.path.realpath(__file__))
+
+
+# lemon
 lemon_ttl_path = os.path.join(dir_path,
-                              'res/rdf/lemon.ttl')
+                              'res/lemon/lemon.ttl')
 
 lemon = Graph()
 lemon.parse(lemon_ttl_path, format='ttl')
 
+# FN pos -> lexinfo
 path_fn_pos_to_lexinfo = os.path.join(dir_path,
                                       'res',
                                       'rdf',
@@ -52,7 +57,13 @@ path_fn_pos_to_lexinfo = os.path.join(dir_path,
                                       'fn_pos_to_lexinfo.json')
 fn_pos_to_lexinfo = json.load(open(path_fn_pos_to_lexinfo))
 
-
-from .rdf_utils import load_nt_graph
+# premon
 premon_nt = os.path.join(dir_path, 'res/premon/premon-2018a-fn17-noinf.nt')
-premon = load_nt_graph(nt_path=premon_nt)
+
+# ontolex
+ontolex_path = os.path.join(dir_path,
+                            'res',
+                            'ontolex',
+                            'ontolex.rdf')
+ontolex = Graph()
+ontolex.parse(ontolex_path)

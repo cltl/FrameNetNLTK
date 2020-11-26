@@ -14,7 +14,8 @@ output_path = os.path.join(os.getcwd(),
                            'lemon.nt')
 
 convert_to_lemon(lemon=FrameNetNLTK.lemon,
-                 premon=FrameNetNLTK.premon,
+                 premon_nt_path=FrameNetNLTK.premon_nt,
+                 ontolex=FrameNetNLTK.ontolex,
                  fn_pos_to_lexinfo=FrameNetNLTK.fn_pos_to_lexinfo,
                  your_fn=my_fn,
                  namespace='http://rdf.cltl.nl/dfn/',

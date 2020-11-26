@@ -1,10 +1,8 @@
-from rdflib import Graph
 from rdflib.namespace import RDF, RDFS, XSD
 from rdflib.namespace import Namespace
 from rdflib import URIRef
 from rdflib import Literal
 from rdflib import ConjunctiveGraph, Graph
-
 
 
 SUPPORTED_LANGUAGES = {
@@ -19,7 +17,8 @@ LANGUAGE_TO_ADJECTIVE = {
 
 
 def convert_to_lemon(lemon,
-                     premon,
+                     premon_nt_path,
+                     ontolex,
                      fn_pos_to_lexinfo,
                      your_fn,
                      namespace,
@@ -33,7 +32,8 @@ def convert_to_lemon(lemon,
     https://lemon-model.net/lemon#
 
     :param rdflib.graph.Graph lemon: use FrameNetNLTK.lemon
-    :param rdflib.graph.Graph premon: use FrameNetNLTK.premon
+    :param rdflib.graph.Graph premon: use FrameNetNLTK.premon_nt
+    :param rdflib.graph.Graph ontolex: use FrameNetNLTK.ontolex
     :param dict fn_pos_to_lexinfo: use FrameNetNLTK.fn_pos_to_lexinfo
     :param nltk.corpus.reader.framenet.FramenetCorpusReader your_fn: a FrameNet in the NLTK format
     :param str namespace: a namespace.
@@ -43,6 +43,9 @@ def convert_to_lemon(lemon,
     :param int major_version: the major version
     :param int minor_version: the minor version
     """
+    # loading premon
+    premon = load_nt_graph(nt_path=premon_nt_path)
+
     # validate parameters
     error_message = f'{language} not part of supported languages: {SUPPORTED_LANGUAGES}'
     assert language in SUPPORTED_LANGUAGES, error_message
@@ -52,7 +55,6 @@ def convert_to_lemon(lemon,
                                            language=language,
                                            major_version=major_version,
                                            minor_version=minor_version)
-    literal_lang_value = 'eng'
     if verbose >= 2:
         print(f'lexicon uri: {lexicon_uri}')
 
@@ -62,10 +64,12 @@ def convert_to_lemon(lemon,
     LEMON = Namespace('http://lemon-model.net/lemon#')
     DCT = Namespace('http://purl.org/dc/terms/')
     LEXINFO = Namespace('http://www.lexinfo.net/ontology/3.0/lexinfo#')
+    ONTOLEX = Namespace('http://www.w3.org/ns/lemon/ontolex#')
 
     g.bind('lemon', LEMON)
     g.bind('dct', DCT)
     g.bind('lexinfo', LEXINFO)
+    g.bind('ontolex', ONTOLEX)
 
     # update lexicon information
     lexicon_uri_obj = URIRef(lexicon_uri)
@@ -74,23 +78,20 @@ def convert_to_lemon(lemon,
     g.add((lexicon_uri_obj, RDF.type, LEMON.Lexicon))
 
     assert LEMON.language in lemon.subjects()
-    g.add((lexicon_uri_obj, LEMON.language, Literal(language, lang=literal_lang_value)))
+    g.add((lexicon_uri_obj, LEMON.language, Literal(language)))
 
     lexicon_label = f'{LANGUAGE_TO_ADJECTIVE[language]} FrameNet v{major_version}.{minor_version}'
-    g.add((lexicon_uri_obj, RDFS.label, Literal(lexicon_label, lang=literal_lang_value)))
+    g.add((lexicon_uri_obj, RDFS.label, Literal(lexicon_label)))
 
     lexicon_version = float(f'{major_version}.{minor_version}')
     g.add((lexicon_uri_obj, DCT.identifier, Literal(lexicon_version,
                                                     datatype=XSD.decimal)))
 
 
+    # TODO: lu definition
 
-
-
-    # TODO: update for each LE and LU
+    # update for each LE and LU
     for lu in your_fn.lus():
-
-        # TODO: retrieve premon uri
 
         # generate LE and LU rdf uri
         le_uri, leform_uri, lu_uri = generate_le_and_lu_rdf_uri(your_fn=your_fn,
@@ -110,14 +111,16 @@ def convert_to_lemon(lemon,
                URIRef(fn_pos_to_lexinfo[lu.POS]))
                )
 
+
         # update LE form
+        lemma, pos = lu.name.rsplit('.', 1)
         le_form_obj = URIRef(leform_uri)
         g.add((le_form_obj, RDFS.isDefinedBy, le_obj))
         assert LEMON.Form in lemon.subjects()
         g.add((le_form_obj, RDF.type, LEMON.Form))
         assert LEMON.writtenRep in lemon.subjects()
-        # TODO: wait for discussion in project meeting
-        #g.add((le_form_obj, LEMON.writtenRep, ))
+        g.add((le_form_obj, LEMON.writtenRep, Literal(lemma, lang=language)))
+
         assert LEMON.canonicalForm in lemon.subjects()
         g.add((le_obj, LEMON.canonicalForm, le_form_obj))
 
@@ -129,13 +132,17 @@ def convert_to_lemon(lemon,
         g.add((lu_obj, RDF.type, LEMON.LexicalSense))
         g.add((lu_obj, DCT.identifier, Literal(lu.ID,
                                               datatype=XSD.integer)))
-        #TODO: evokes relationship
+        # evokes relationship
         frame_uri = get_rdf_uri(premon_nt=premon,
                                 frame_label=lu.frame.name)
-        print(frame_uri)
+        frame_obj = URIRef(frame_uri)
 
-        # link to the lexicon
+        assert frame_obj in premon.subjects()
+        assert ONTOLEX.evokes in ontolex.subjects()
+        g.add((le_obj, ONTOLEX.evokes, frame_obj))
+
         assert LEMON.entry in lemon.subjects()
+        assert frame_obj
         g.add((lexicon_uri_obj, LEMON.entry, le_obj))
 
         if verbose >= 5:
