@@ -1,0 +1,15 @@
+{
+  "A" : "http://www.lexinfo.net/ontology/3.0/lexinfo#adjective",
+  "SCON" : "http://www.lexinfo.net/ontology/3.0/lexinfo#subordinatingConjunction",
+  "PRON" : "http://www.lexinfo.net/ontology/3.0/lexinfo#pronoun",
+  "ART" : "http://www.lexinfo.net/ontology/3.0/lexinfo#article",
+  "C" : "http://www.lexinfo.net/ontology/3.0/lexinfo#coordinatingConjunction",
+  "N" : "http://www.lexinfo.net/ontology/3.0/lexinfo#noun",
+  "IDIO" : "http://www.lexinfo.net/ontology/3.0/lexinfo#idiom",
+  "V" : "http://www.lexinfo.net/ontology/3.0/lexinfo#verb",
+  "INTJ" : "http://www.lexinfo.net/ontology/3.0/lexinfo#interjection",
+  "ADV" : "http://www.lexinfo.net/ontology/3.0/lexinfo#adverb",
+  "NUM" : "http://www.lexinfo.net/ontology/3.0/lexinfo#numeral",
+  "PREP": "http://www.lexinfo.net/ontology/3.0/lexinfo#preposition",
+  "I" : "http://www.lexinfo.net/ontology/3.0/lexinfo#infix"
+}
