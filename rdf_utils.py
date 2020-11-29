@@ -1,7 +1,7 @@
 from rdflib.namespace import RDF, RDFS, XSD
 from rdflib.namespace import Namespace
 from rdflib import URIRef
-from rdflib import Literal
+from rdflib import Literal, BNode
 from rdflib import ConjunctiveGraph, Graph
 
 
@@ -14,6 +14,88 @@ LANGUAGE_TO_ADJECTIVE = {
     'eng' : 'English',
     'nld' : 'Dutch'
 }
+
+def get_lexeme_info(lexeme):
+    """
+    generate dictionary of information used per lexem
+
+    :param nltk.corpus.reader.framenet.PrettyDict lexeme: a lexeme
+
+    :rtype: dict
+    """
+
+    bn_node = BNode()
+
+    info = {
+        'bn_node' : bn_node
+    }
+    return info
+
+def add_endocentric_compound(g,
+                             lu,
+                             LEMON,
+                             lemon,
+                             le_obj):
+    """
+    add lemon representation of compound
+
+    :param rdflib.graph.Graph g: the graph to which we are added information
+
+    :param nltk.corpus.reader.framenet.AttrDict lu: FrameNet NLTK LU object
+    :param rdflib.namespace.Namespace LEMON: Lemon namespace
+    :param rdflib.graph.Graph lemon: lemon graph
+    :param rdflib.URIRef le_obj: uriref of LexicalEntry
+    """
+
+
+    # LE -> : blank node representing first :ComponentList
+    assert LEMON.decomposition in lemon.subjects()
+
+    lexeme_order_to_info = {
+        lexeme['order'] : get_lexeme_info(lexeme=lexeme)
+        for lexeme in lu.lexemes
+    }
+
+    for lexeme_order, lexeme_info in sorted(lexeme_order_to_info.items()):
+
+        # TODO: add complement information in separate function
+        comp_uri = le_obj + f'#Component{lexeme_order}'
+        comp_obj = URIRef(comp_uri)
+
+        g.add((lexeme_info['bn_node'], RDF.first, comp_obj))
+
+        # TODO: add relationships between :LexicalEntry and :ComponentList(s)
+
+        order_plus_one = lexeme_order + 1
+
+        # first :ComponentList is linked to LexicalEntry
+        if lexeme_order == 1:
+            g.add((le_obj, LEMON.decomposition, lexeme_info['bn_node']))
+        # second: :ComponentList is linked to :ComponentList
+        if order_plus_one in lexeme_order_to_info:
+            g.add((lexeme_info['bn_node'],
+                   RDF.rest,
+                   lexeme_order_to_info[order_plus_one]['bn_node']))
+        # last: last item in the list is linked to RDF.nil
+        else:
+            g.add((lexeme_info['bn_node'],
+                  RDF.rest,
+                  RDF.nil))
+
+def get_lu_type(lu, language):
+    """
+    the attribute lu is only defined for Dutch FrameNet.
+    this function determines what the lu type is
+
+    :param lu:
+    :return:
+    """
+    if language == 'eng':
+        raise NotImplementedError('lu type function not implemented.')
+    elif language == 'nld':
+        lu_type = lu.lu_type
+
+    return lu_type
 
 
 def convert_to_lemon(lemon,
@@ -93,6 +175,9 @@ def convert_to_lemon(lemon,
     # update for each LE and LU
     for lu in your_fn.lus():
 
+        if verbose >= 3:
+            print(f'convert LU {lu.ID} ({lu.name}) to Lemon')
+
         # generate LE and LU rdf uri
         le_uri, leform_uri, lu_uri = generate_le_and_lu_rdf_uri(your_fn=your_fn,
                                                                 namespace=namespace,
@@ -144,6 +229,27 @@ def convert_to_lemon(lemon,
         assert LEMON.entry in lemon.subjects()
         assert frame_obj
         g.add((lexicon_uri_obj, LEMON.entry, le_obj))
+
+
+        # LU type
+        lu_type = get_lu_type(lu=lu, language=language)
+
+        if lu_type == 'endocentric compound':
+            add_endocentric_compound(g=g,
+                                     lu=lu,
+                                     LEMON=LEMON,
+                                     lemon=lemon,
+                                     le_obj=le_obj)
+        elif lu_type == 'singleton':
+            pass
+        elif lu_type == 'idiom':
+            pass
+        elif lu_type == 'phrasal':
+            pass
+        elif lu_type == 'exocentric compound':
+            pass
+        else:
+            raise Exception(f'lu type ({lu_type}) not known')
 
         if verbose >= 5:
             print('QUITTING AFTER FIRST ITERATION')
