@@ -11,7 +11,7 @@ my_fn = load(folder='test_lexicon',
 
 output_path = os.path.join(os.getcwd(),
                            'stats',
-                           'lemon.nt')
+                           'lemon.ttl')
 
 convert_to_lemon(lemon=FrameNetNLTK.lemon,
                  premon_nt_path=FrameNetNLTK.premon_nt,
@@ -23,4 +23,4 @@ convert_to_lemon(lemon=FrameNetNLTK.lemon,
                  major_version=0,
                  minor_version=1,
                  output_path=output_path,
-                 verbose=5)
+                 verbose=4)

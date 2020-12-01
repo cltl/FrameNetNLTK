@@ -15,7 +15,10 @@ LANGUAGE_TO_ADJECTIVE = {
     'nld' : 'Dutch'
 }
 
-def get_lexeme_info(lexeme):
+def get_lexeme_info(lexeme,
+                    g,
+                    DCT,
+                    LEMON):
     """
     generate dictionary of information used per lexem
 
@@ -23,21 +26,34 @@ def get_lexeme_info(lexeme):
 
     :rtype: dict
     """
-
     bn_node = BNode()
 
+    lu_id = lexeme.get('lu_id', None)
+
+    if lu_id is not None:
+        le_obj_of_component = get_le_uri(g=g,
+                                         DCT=DCT,
+                                         LEMON=LEMON,
+                                         lu_identifier=lu_id)
+    else:
+        le_obj_of_component = None
+
     info = {
-        'bn_node' : bn_node
+        'bn_node' : bn_node,
+        'le_obj_of_component' : le_obj_of_component
+
     }
+
     return info
 
-def add_endocentric_compound(g,
-                             lu,
-                             LEMON,
-                             lemon,
-                             le_obj):
+def add_decomposition(g,
+                      lu,
+                      LEMON,
+                      DCT,
+                      lemon,
+                      le_obj):
     """
-    add lemon representation of compound
+    add lemon representation of decomposition of terms
 
     :param rdflib.graph.Graph g: the graph to which we are added information
 
@@ -52,7 +68,10 @@ def add_endocentric_compound(g,
     assert LEMON.decomposition in lemon.subjects()
 
     lexeme_order_to_info = {
-        lexeme['order'] : get_lexeme_info(lexeme=lexeme)
+        lexeme['order'] : get_lexeme_info(lexeme=lexeme,
+                                          g=g,
+                                          DCT=DCT,
+                                          LEMON=LEMON)
         for lexeme in lu.lexemes
     }
 
@@ -63,9 +82,11 @@ def add_endocentric_compound(g,
         comp_obj = URIRef(comp_uri)
 
         g.add((lexeme_info['bn_node'], RDF.first, comp_obj))
+        if lexeme_info['le_obj_of_component'] is not None:
+            assert LEMON.element in lemon.subjects()
+            g.add((comp_obj, LEMON.element, lexeme_info['le_obj_of_component']))
 
-        # TODO: add relationships between :LexicalEntry and :ComponentList(s)
-
+        # add relationships between :LexicalEntry and :ComponentList(s)
         order_plus_one = lexeme_order + 1
 
         # first :ComponentList is linked to LexicalEntry
@@ -82,6 +103,34 @@ def add_endocentric_compound(g,
                   RDF.rest,
                   RDF.nil))
 
+
+def get_le_uri(g,
+               DCT,
+               LEMON,
+               lu_identifier):
+    """
+    query to obtain LexicalEntry URI
+    """
+    query = f"""SELECT ?le_obj WHERE {{ 
+            ?lu_obj <{RDF.type}> <{LEMON.LexicalSense}> . 
+            ?lu_obj <{DCT.identifier}> {lu_identifier} .
+            ?lu_obj <{LEMON.isSenseOf}> ?le_obj . }}
+    """
+    result = g.query(query)
+
+    urirefs = []
+
+    for info in result.bindings:
+        for uriref in info.values():
+            urirefs.append(uriref)
+
+    assert len(urirefs) == 1
+
+    le_obj = urirefs[0]
+
+    return le_obj
+
+
 def get_lu_type(lu, language):
     """
     the attribute lu is only defined for Dutch FrameNet.
@@ -96,6 +145,46 @@ def get_lu_type(lu, language):
         lu_type = lu.lu_type
 
     return lu_type
+
+
+def get_word_or_phrase(lu_type, lexemes, LEMON, lemon):
+    """
+
+    :param lu_type:
+    :param lexemes:
+    :return:
+    """
+
+    if lu_type is not None:
+
+        if lu_type in {'endocentric compound',
+                       'exocentric compound',
+                       'singleton'}:
+            word_or_phrase = 'word'
+        elif lu_type in {'phrasal',
+                         'idiom'}:
+            word_or_phrase = 'phrase'
+        else:
+            raise Exception(f'unknown lu type {lu_type}')
+    else:
+        num_lexemes = len(lexemes)
+
+        if num_lexemes == 1:
+            word_or_phrase = 'word'
+        elif num_lexemes >= 2:
+            word_or_phrase = 'phrase'
+
+    lemon_obj = None
+
+    if word_or_phrase == 'word':
+        assert LEMON.Word in lemon.subjects()
+        lemon_obj = LEMON.Word
+    elif word_or_phrase == 'phrase':
+        assert LEMON.Phrase in lemon.subjects()
+        lemon_obj = LEMON.Phrase
+
+    return lemon_obj
+
 
 
 def convert_to_lemon(lemon,
@@ -217,6 +306,9 @@ def convert_to_lemon(lemon,
         g.add((lu_obj, RDF.type, LEMON.LexicalSense))
         g.add((lu_obj, DCT.identifier, Literal(lu.ID,
                                               datatype=XSD.integer)))
+        assert LEMON.isSenseOf in lemon.subjects()
+        g.add((lu_obj, LEMON.isSenseOf, le_obj))
+
         # evokes relationship
         frame_uri = get_rdf_uri(premon_nt=premon,
                                 frame_label=lu.frame.name)
@@ -230,24 +322,39 @@ def convert_to_lemon(lemon,
         assert frame_obj
         g.add((lexicon_uri_obj, LEMON.entry, le_obj))
 
+        if verbose >= 5:
+            print('QUITTING AFTER FIRST ITERATION')
+            break
+
+    for lu in your_fn.lus():
+
+        # obtain LE obj
+        le_obj = get_le_uri(g=g,
+                            DCT=DCT,
+                            LEMON=LEMON,
+                            lu_identifier=lu.ID)
 
         # LU type
         lu_type = get_lu_type(lu=lu, language=language)
+        word_or_phrase = get_word_or_phrase(lu_type=lu_type,
+                                            lexemes=lu.lexemes,
+                                            LEMON=LEMON,
+                                            lemon=lemon)
 
-        if lu_type == 'endocentric compound':
-            add_endocentric_compound(g=g,
-                                     lu=lu,
-                                     LEMON=LEMON,
-                                     lemon=lemon,
-                                     le_obj=le_obj)
-        elif lu_type == 'singleton':
-            pass
-        elif lu_type == 'idiom':
-            pass
-        elif lu_type == 'phrasal':
-            pass
-        elif lu_type == 'exocentric compound':
-            pass
+        g.add((le_obj, RDF.type, word_or_phrase))
+
+        if lu_type == 'singleton':
+            continue
+        elif lu_type in {'endocentric compound',
+                         'exocentric compound',
+                         'idiom',
+                         'phrasal'}:
+            add_decomposition(g=g,
+                              lu=lu,
+                              DCT=DCT,
+                              LEMON=LEMON,
+                              lemon=lemon,
+                              le_obj=le_obj)
         else:
             raise Exception(f'lu type ({lu_type}) not known')
 

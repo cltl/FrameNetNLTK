@@ -1,3 +1,8 @@
+# own paths
+test/stats
+res
+test/test_lexicon/
+
 .DS_Store
 .idea/
 dev

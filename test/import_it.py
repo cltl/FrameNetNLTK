@@ -1,4 +1,7 @@
 import sys
-sys.path.insert(0, '../..')
 
-import FrameNetNLTK
+sys.path.insert(0, '../..')
+from FrameNetNLTK import load
+
+my_fn = load(folder='test_lexicon',
+             verbose=2)

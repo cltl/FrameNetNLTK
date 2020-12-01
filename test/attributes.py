@@ -188,17 +188,19 @@ def test_lexemes_luname_substring():
 
 def test_lexicon_uri():
     uri = rdf_utils.generate_lexicon_rdf_uri(namespace='http://rdf.cltl.nl/',
-                                             language='nl',
+                                             language='nld',
                                              major_version=0,
                                              minor_version=1)
-    assert uri == 'http://rdf.cltl.nl/fn_nl-lexicon-0.1'
+    assert uri == 'http://rdf.cltl.nl/fn_nld-lexicon-0.1'
 
 
 def test_lu_uri():
-    uri = rdf_utils.generate_lu_rdf_uri(your_fn=fn,
-                                        namespace='http://rdf.cltl.nl/',
-                                        language='en',
-                                        major_version=1,
-                                        minor_version=7,
-                                        lu_id=14160)
-    assert uri == 'http://rdf.cltl.nl/fn_en-lexicon-1.7-lu-14160'
+    le_rdf_uri,\
+    leform_rdf_uri,\
+    lu_rdf_uri = rdf_utils.generate_le_and_lu_rdf_uri(your_fn=fn,
+                                                      namespace='http://rdf.cltl.nl/',
+                                                      language='eng',
+                                                      major_version=1,
+                                                      minor_version=7,
+                                                      lu_id=14160)
+    assert lu_rdf_uri == 'http://rdf.cltl.nl/fn_eng-lexicon-1.7-lu-14160'
