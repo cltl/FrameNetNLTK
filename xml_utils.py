@@ -43,6 +43,29 @@ def strip_lu_els_and_save(input_path,
               xml_declaration=True)
 
 
+def strip_corpus_els_and_save(input_path,
+                              output_path,
+                              verbose=0):
+    parser = etree.XMLParser(remove_blank_text=True)
+    doc = etree.parse(input_path, parser)
+    root = doc.getroot()
+
+    query = '{http://framenet.icsi.berkeley.edu}corpus'
+    for lu_el in root.findall(query):
+        lu_el.getparent().remove(lu_el)
+
+    els = root.findall(query)
+    assert len(els) == 0
+
+    doc.write(output_path,
+              encoding='utf-8',
+              pretty_print=True,
+              xml_declaration=True)
+
+    if verbose >= 2:
+        print(f'removed corpus els and saved it to {output_path}')
+
+
 def initialize(folder,
                fn_en,
                verbose=0):

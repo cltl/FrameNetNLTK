@@ -21,13 +21,8 @@ from .rdf_utils import generate_le_and_lu_rdf_uri
 from .rdf_utils import convert_to_lemon
 
 # annotations
-# TODO: add_annotations_from_naf_3.1
-    # TODO: check if corpus exists
-    # TODO: add_corpus
-    # TODO: remove_corpus
-    # TODO: add_document (make sure it does not exist, generate document_id)
-    # TODO: add_sentence (make sure it does not exist, generate sent_id)
-    # TODO: add_annotation_set (make sure it does not exist, generate anno_id)
+from .annotation_utils import add_annotations_from_naf_31
+
 
 # stats
 from .stats_utils import get_frame_stats_df

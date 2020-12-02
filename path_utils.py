@@ -35,6 +35,9 @@ def get_relevant_paths(root, check_if_exists=True):
         ('lexUnit.xsl', 'lu/lexUnit.xsl'),
         ('frame_dir', 'frame'),
         ('frame.xsl', 'frame/frame.xsl'),
+        ('fulltextIndex.xml', 'fulltextIndex.xml'),
+        ('fulltextIndex.xsl', 'fulltextIndex.xsl'),
+        ('fulltext_dir', 'fulltext')
     ]
 
     for label, basename in label_and_basenames:
@@ -49,7 +52,6 @@ def get_relevant_paths(root, check_if_exists=True):
     for frame_xml in glob(f'{frame_dir}/*xml'):
         basename = os.path.basename(frame_xml)
         frame = basename[:-4]
-
         label_to_path['frame_to_xml_path'][frame] = os.path.join(frame_dir,
                                                                  basename)
 
