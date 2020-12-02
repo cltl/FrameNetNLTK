@@ -37,7 +37,9 @@ def get_relevant_paths(root, check_if_exists=True):
         ('frame.xsl', 'frame/frame.xsl'),
         ('fulltextIndex.xml', 'fulltextIndex.xml'),
         ('fulltextIndex.xsl', 'fulltextIndex.xsl'),
-        ('fulltext_dir', 'fulltext')
+        ('fulltext_dir', 'fulltext'),
+        ('fullText.xsl', 'fulltext/fullText.xsl'),
+        ('example_document', 'fulltext/WikiTexts__Fires_4.xml'),
     ]
 
     for label, basename in label_and_basenames:

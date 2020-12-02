@@ -27,5 +27,5 @@ add_annotations_from_naf_31(your_fn=my_fn,
 my_fn = load(folder='test_lexicon',
              verbose=2)
 
-#for annotation in my_fn.annotations():
-#    print(annotation)
+for annotation in my_fn.annotations():
+    print(annotation)

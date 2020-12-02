@@ -27,7 +27,7 @@
          </wf>
          <wf sent="1" id="w3" length="4" offset="24"><![CDATA[deed]]></wf>
          <wf sent="1" id="w4" length="9" offset="29"><![CDATA[Amsterdam]]></wf>
-         <wf sent="1" id="w5" length="3" offset="33"><![CDATA[aan]]></wf>
+         <wf sent="1" id="w5" length="3" offset="39"><![CDATA[aan]]></wf>
     </text>
     <terms>
         <term id="t1" lemma="de" pos="DET">

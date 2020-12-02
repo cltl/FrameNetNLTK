@@ -5,6 +5,7 @@ from lxml import etree
 
 from .path_utils import get_relevant_paths
 from .xml_utils import strip_corpus_els_and_save
+from .naf_utils import extract_annotations_from_naf
 
 
 def generate_id(fulltext_xml_path,
@@ -115,13 +116,74 @@ def add_document_to_index(fulltext_xml_path,
               xml_declaration=True)
 
 
+def create_document(example_doc,
+                    output_path,
+                    corpus_id,
+                    corpus_name,
+                    corpus_description,
+                    doc_id,
+                    doc_name,
+                    doc_description,
+                    verbose=0):
+    """
+    <header>
+        <corpus description="Texts from WikiMedia--WikiNews and Wikipedia" name="WikiTexts" ID="246">
+            <document description="Fires_4" name="Fires_4" ID="25619"/>
+        </corpus>
+    </header>
+
+    :param example_doc:
+    :param corpus_id:
+    :param corpus_name:
+    :param corpus_description:
+    :param doc_id:
+    :param doc_name:
+    :param doc_description:
+    :param verbose:
+    :return:
+    """
+    # load example_doc and strip existing elements
+    parser = etree.XMLParser(remove_blank_text=True)
+    doc = etree.parse(example_doc, parser)
+
+    root = doc.getroot()
+    for child_el in root.getchildren():
+        child_el.getparent().remove(child_el)
+
+    els = root.getchildren()
+    assert len(els) == 0
+
+    # add header
+    header_el = etree.Element('header')
+    corpus_el = etree.Element('corpus',
+                              attrib={
+                                  'description' : corpus_description,
+                                  'name' : corpus_name,
+                                  'ID' : str(corpus_id)
+                              })
+    doc_el = etree.Element('document',
+                           attrib={
+                               'description' : doc_name,
+                               'name' : doc_name,
+                               'ID' : str(doc_id)
+                           })
+
+    corpus_el.append(doc_el)
+    header_el.append(corpus_el)
+    root.append(header_el)
+
+    # save to disk
+    doc.write(output_path,
+              encoding='utf-8',
+              pretty_print=True,
+              xml_declaration=True)
+
+    if verbose >= 2:
+        print(f'created new document at {output_path}')
+
+
 def remove_corpus(corpus_name):
     # TODO: what does this actually mean?
-    pass
-
-def add_document(corpus_name,
-                 document_name):
-    # TODO: check if document exists
     pass
 
 def remove_document(corpus_name,
@@ -159,19 +221,6 @@ def setup_fulltext(your_paths,
     :param en_paths:
     :return:
     """
-    if os.path.exists(your_paths['fulltextIndex.xsl']):
-        if start_from_scratch:
-            os.remove(your_paths['fulltextIndex.xsl'])
-            if verbose >= 2:
-                print(f'removed {your_paths["fulltextIndex.xsl"]}')
-
-    if not os.path.exists(your_paths['fulltextIndex.xsl']):
-        shutil.copy(src=en_paths['fulltextIndex.xsl'],
-                    dst=your_paths['fulltextIndex.xsl'])
-        if verbose >= 2:
-            print(f'copied {en_paths["fulltextIndex.xsl"]} to {your_paths["fulltextIndex.xsl"]}')
-
-
     if os.path.exists(your_paths['fulltext_dir']):
         if start_from_scratch:
             shutil.rmtree(your_paths['fulltext_dir'])
@@ -182,6 +231,20 @@ def setup_fulltext(your_paths,
         os.mkdir(your_paths['fulltext_dir'])
         if verbose >= 2:
             print(f'created folder fulltext at {your_paths["fulltext_dir"]}')
+
+    keys = ['fulltextIndex.xsl', 'fullText.xsl']
+    for key in keys:
+        if os.path.exists(your_paths[key]):
+            if start_from_scratch:
+                os.remove(your_paths['fulltextIndex.xsl'])
+                if verbose >= 2:
+                    print(f'removed {your_paths[key]}')
+
+        if not os.path.exists(your_paths[key]):
+            shutil.copy(src=en_paths[key],
+                        dst=your_paths[key])
+            if verbose >= 2:
+                print(f'copied {en_paths[key]} to {your_paths[key]}')
 
     # strip fulltextIndex.xml and copy to your FrameNet
     if os.path.exists(your_paths['fulltextIndex.xml']):
@@ -256,6 +319,28 @@ def add_annotations_from_naf_31(your_fn,
                               verbose=verbose)
 
     # annotation document
+    output_path = os.path.join(your_paths['fulltext_dir'],
+                               f'{corpus_name}__{doc_name}.xml')
+    if new_doc:
+        create_document(example_doc=en_paths['example_document'],
+                        output_path=output_path,
+                        corpus_id=corpus_id,
+                        corpus_name=corpus_name,
+                        corpus_description=corpus_description,
+                        doc_id=doc_id,
+                        doc_name=doc_name,
+                        doc_description=doc_name,
+                        verbose=verbose)
+
+    # load NAF annotations
+    naf_sentid_to_info = extract_annotations_from_naf(naf_path=naf_path)
+
+    print(naf_sentid_to_info)
+    # TODO: load previous annotations
+
+    # TODO: add to document
+    # TODO: update with sentence identifier
+
 
 
 
