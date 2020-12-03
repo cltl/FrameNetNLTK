@@ -71,6 +71,20 @@
             </span>
         </term>
     </terms>
+    <multiwords>
+        <mw id="mw1" lemma="aandoen" pos="VERB" type="phrasal">
+            <component id="mw1.c1">
+                <span>
+                    <target id="t3"/>
+                </span>
+            </component>
+            <component id="mw1.c2">
+                <span>
+                    <target id="t5"/>
+                </span>
+            </component>
+        </mw>
+    </multiwords>
     <srl>
       <predicate id="pr1" status='manual'>
           <span>

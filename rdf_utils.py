@@ -468,3 +468,21 @@ def get_rdf_uri(premon_nt, frame_label):
         frame_rdf_uri = str(result.asdict()['s'])
 
     return frame_rdf_uri
+
+
+def get_rdf_label(graph, uri):
+    query = """SELECT ?o WHERE {
+        <%s> rdfs:label ?o
+    }"""
+    the_query = query % uri
+
+    results = graph.query(the_query)
+
+    labels = set()
+    for result in results:
+        label = str(result.asdict()['o'])
+        labels.add(label)
+
+    assert len(labels) == 1, f'expected one label for {uri}, got {labels}'
+
+    return labels.pop()

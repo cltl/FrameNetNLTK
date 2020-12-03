@@ -5,7 +5,10 @@ from lxml import etree
 
 from .path_utils import get_relevant_paths
 from .xml_utils import strip_corpus_els_and_save
-from .naf_utils import extract_annotations_from_naf
+from .xml_utils import add_annotations_to_nltk_doc
+from .naf_utils import get_sentid_to_info
+from .naf_utils import load_annotations_from_naf
+from .rdf_utils import load_nt_graph
 
 
 def generate_id(fulltext_xml_path,
@@ -182,6 +185,28 @@ def create_document(example_doc,
         print(f'created new document at {output_path}')
 
 
+
+def get_sent_id(corpus_id,
+                doc_id,
+                naf_sent_id,
+                fill_width=8):
+    """
+
+    :param corpus_id:
+    :param doc_id:
+    :param naf_sent_id:
+    :return:
+    """
+    nltk_sent_id = ''
+
+    for id_ in [corpus_id, doc_id, naf_sent_id]:
+        id_filled = str(id_).zfill(fill_width)
+
+        nltk_sent_id += id_filled
+
+    return nltk_sent_id
+
+
 def remove_corpus(corpus_name):
     # TODO: what does this actually mean?
     pass
@@ -261,6 +286,7 @@ def setup_fulltext(your_paths,
 
 def add_annotations_from_naf_31(your_fn,
                                 fn_en,
+                                premon_nt,
                                 corpus_name,
                                 corpus_description,
                                 naf_path,
@@ -272,6 +298,7 @@ def add_annotations_from_naf_31(your_fn,
 
     :param nltk.corpus.reader.framenet.FramenetCorpusReader your_fn: a FrameNet in the NLTK format
     :param nltk corpus.reader.framenet.FramenetCorpusReader fn_en: English FrameNet in the NLTK format
+    :param rdflib.graph.Graph premon: use FrameNetNLTK.premon_nt
 
     :param str corpus_name: abbreviated name of the corpus, e.g., HDD, which will be the value
     of the attribute "name" of element "corpus" in the file fulltextIndex.xml
@@ -282,6 +309,8 @@ def add_annotations_from_naf_31(your_fn,
     """
     your_paths = get_relevant_paths(root=your_fn._root, check_if_exists=False)
     en_paths = get_relevant_paths(root=fn_en._root, check_if_exists=True)
+
+    premon = load_nt_graph(nt_path=premon_nt)
 
     setup_fulltext(your_paths=your_paths,
                    en_paths=en_paths,
@@ -304,7 +333,11 @@ def add_annotations_from_naf_31(your_fn,
 
 
     # document in index
+
     doc_name = os.path.basename(naf_path)
+    output_path = os.path.join(your_paths['fulltext_dir'],
+                               f'{corpus_name}__{doc_name}.xml')
+
     doc_id, new_doc = generate_id(fulltext_xml_path=your_paths['fulltextIndex.xml'],
                                   type='document',
                                   the_name=corpus_name,
@@ -318,9 +351,14 @@ def add_annotations_from_naf_31(your_fn,
                               doc_description=doc_name,
                               verbose=verbose)
 
-    # annotation document
-    output_path = os.path.join(your_paths['fulltext_dir'],
-                               f'{corpus_name}__{doc_name}.xml')
+    else: # the document existed before
+        if overwrite:
+            os.remove(output_path)
+            if verbose >= 2:
+                print(f'removed existing document from {output_path}')
+        else:
+            raise NotImplementedError(f'updating existing document has not been implemented.')
+
     if new_doc:
         create_document(example_doc=en_paths['example_document'],
                         output_path=output_path,
@@ -333,13 +371,33 @@ def add_annotations_from_naf_31(your_fn,
                         verbose=verbose)
 
     # load NAF annotations
-    naf_sentid_to_info = extract_annotations_from_naf(naf_path=naf_path)
+    naf_sentid_to_info = get_sentid_to_info(naf_path=naf_path)
 
-    print(naf_sentid_to_info)
-    # TODO: load previous annotations
+    # update with sentence identifier (verify that identifier is new)
+    for naf_sentid, sent_info in naf_sentid_to_info.items():
+        nltk_sent_id = get_sent_id(corpus_id=corpus_id,
+                                   doc_id=doc_id,
+                                   naf_sent_id=naf_sentid,
+                                   fill_width=8)
+        sent_info['nltk_sent_id'] = nltk_sent_id
 
-    # TODO: add to document
-    # TODO: update with sentence identifier
+    # load annotations from NAF
+    sentid_to_annotations = load_annotations_from_naf(your_fn=your_fn,
+                                                   naf_path=naf_path,
+                                                   doc_id=doc_id,
+                                                   premon=premon)
+
+
+    # update annotations
+    add_annotations_to_nltk_doc(doc_xml_path=output_path,
+                                sentid_to_annotations=sentid_to_annotations,
+                                sentid_to_info=naf_sentid_to_info,
+                                corpus_id=corpus_id,
+                                doc_id=doc_id,
+                                verbose=verbose)
+
+
+
 
 
 

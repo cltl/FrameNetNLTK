@@ -3,6 +3,7 @@ import sys
 sys.path.insert(0, '..')
 sys.path.insert(0, '../..')
 from nltk.corpus import framenet as fn
+import FrameNetNLTK
 from FrameNetNLTK import add_annotations_from_naf_31
 from FrameNetNLTK import load
 
@@ -14,8 +15,10 @@ corpus_description = 'HistoricalDistanceData'
 my_fn = load(folder='test_lexicon',
              verbose=2)
 
+
 add_annotations_from_naf_31(your_fn=my_fn,
                             fn_en=fn,
+                            premon_nt=FrameNetNLTK.premon_nt,
                             corpus_name=corpus_name,
                             corpus_description=corpus_description,
                             naf_path=naf_path,

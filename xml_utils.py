@@ -359,3 +359,106 @@ def remove_lexunit_el_from_frame_xml(your_fn,
               encoding='utf-8',
               pretty_print=True,
               xml_declaration=True)
+
+
+def add_annotations_to_nltk_doc(doc_xml_path,
+                                sentid_to_annotations,
+                                sentid_to_info,
+                                corpus_id,
+                                doc_id,
+                                verbose=0):
+    """
+
+    :param sentid_to_annotations:
+    :param sentid_to_info:
+    :return:
+    """
+    # load xml file
+    parser = etree.XMLParser(remove_blank_text=True)
+    doc = etree.parse(doc_xml_path, parser)
+    root = doc.getroot()
+
+    num_sents_added = 0
+    num_annotations_added = 0
+
+    for sent_id, annotations in sentid_to_annotations.items():
+
+        # add sentence information
+        sent_info = sentid_to_info[sent_id]
+
+        sent_el = etree.Element('sentence',
+                                attrib={
+                                    'corpID' : str(corpus_id),
+                                    'docID' : str(doc_id),
+                                    'sentNo' : sent_info['sentNo'],
+                                    'paragNo' : sent_info['paragNo'],
+                                    'aPos' : '0',
+                                    'ID' : sent_info['nltk_sent_id'],
+                                })
+        text_el = etree.Element('text')
+        text_el.text = sent_info['sentence']
+        sent_el.append(text_el)
+        root.append(sent_el)
+
+        num_sents_added += 1
+
+        # add annotations
+        for index, annotation in enumerate(annotations):
+
+            if index == 0: # we need to add annotationSet with status="UNANN" for first annotation
+                anno_set_el = etree.Element('annotationSet',
+                                            attrib={
+                                                'cDate' : annotation['cDate'],
+                                                'status' : 'UNANN',
+                                                'ID' : str(int(annotation['ID'])-1)
+                                            })
+                penn_layer = etree.Element('layer', attrib={'rank' : '1', 'name' : 'PENN'})
+                ner_layer = etree.Element('layer', attrib={'rank' : '1', 'name' : 'NER'})
+                wsl_layer = etree.Element('layer', attrib={'rank' : '1', 'name' : 'WSL'})
+                anno_set_el.extend([penn_layer, ner_layer, wsl_layer])
+                sent_el.append(anno_set_el)
+
+
+            anno_set_el = etree.Element('annotationSet',
+                                        attrib={
+                                            'cDate': annotation['cDate'],
+                                            'luID': annotation['luID'],
+                                            'luName' : annotation['luName'],
+                                            'frameID' : annotation['frameID'],
+                                            'frameName' : annotation['frameName'],
+                                            'status' : annotation['status'],
+                                            'ID' : annotation['ID']
+                                        })
+
+            target_layer = etree.Element('layer', attrib={'rank': '1', 'name': 'Target'})
+
+            for start_end_offsets in annotation['pred_offsets']:
+                label_el = etree.Element('label', attrib={
+                    'cBy' : annotation['cBy'],
+                    'start' : str(start_end_offsets['start_offset_in_sent']),
+                    'end' : str(start_end_offsets['end_offset_in_sent']),
+                    'name' : 'Target'
+                })
+                target_layer.append(label_el)
+            fe_layer = etree.Element('layer', attrib={'rank': '1', 'name': 'FE'})
+            gf_layer = etree.Element('layer', attrib={'rank': '1', 'name': 'GF'})
+            pt_layer = etree.Element('layer', attrib={'rank' : '1', 'name' : 'PT'})
+            other_layer = etree.Element('layer', attrib={'rank' : '1', 'name' : 'Other'})
+            sent_layer = etree.Element('layer', attrib={'rank' : '1', 'name' : 'Sent'})
+            verb_layer = etree.Element('layer', attrib={'rank' : '1', 'name' : 'Verb'})
+
+            anno_set_el.extend([target_layer, fe_layer, gf_layer, pt_layer, other_layer, sent_layer, verb_layer])
+            sent_el.append(anno_set_el)
+            num_annotations_added += 1
+
+    # write to disk
+    doc.write(doc_xml_path,
+              encoding='utf-8',
+              pretty_print=True,
+              xml_declaration=True)
+
+    if verbose >= 2:
+        print()
+        print(f'added {num_sents_added} sentences')
+        print(f'added {num_annotations_added} annotations')
+        print(f'written to {doc_xml_path}')
