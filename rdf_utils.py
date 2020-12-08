@@ -15,6 +15,63 @@ LANGUAGE_TO_ADJECTIVE = {
     'nld' : 'Dutch'
 }
 
+LUTYPE_TO_LU_TYPE_URL = {
+    'idiom' : 'http://www.lexinfo.net/ontology/3.0/lexinfo#idiom',
+}
+
+LU_TYPE_URL_TO_INFO = {
+    'phrasal' : {
+        "type" : "http://www.w3.org/2002/07/owl#Thing",
+        "label" : "phrasal verb",
+        "comment" : "most often the combination of a verb and a verb particle.",
+        "seeAlso" : "https://en.wikipedia.org/wiki/Phrasal_verb"
+    },
+    'endocentric compound' : {
+        "type" : "http://www.w3.org/2002/07/owl#Thing",
+        "label" : "endocentric compound",
+        "comment" : "most often a compound with a head and a modfier.",
+        "seeAlso" : "http://www.glottopedia.org/index.php/Endocentric_compound",
+        "subtype" : "http://www.lexinfo.net/ontology/3.0/lexinfo#compound"
+    },
+    'exocentric compound' : {
+        "type": "http://www.w3.org/2002/07/owl#Thing",
+        "label": "exocentric compound",
+        "comment": "a compound that lacks a head",
+        "seeAlso": "http://www.glottopedia.org/index.php/Exocentric_compound",
+        "subtype": "http://www.lexinfo.net/ontology/3.0/lexinfo#compound"
+    }
+}
+
+
+def initialize_graph(namespace):
+    """
+    initialize graph with our own relationships
+
+    :return:
+    """
+    g = Graph()
+
+    # TODO: lu types
+    for lu_type, lu_type_info in LU_TYPE_URL_TO_INFO.items():
+        lu_type_url = f'{namespace}{lu_type.replace(" ","_")}'
+        LUTYPE_TO_LU_TYPE_URL[lu_type] = lu_type_url
+        lu_type_obj = URIRef(lu_type_url)
+        g.add((lu_type_obj, RDF.type, URIRef(lu_type_info['type'])))
+        g.add((lu_type_obj, RDFS.label, Literal(lu_type_info['label'])))
+        g.add((lu_type_obj, RDFS.comment, Literal(lu_type_info['comment'])))
+        g.add((lu_type_obj, RDFS.seeAlso, URIRef(lu_type_info['seeAlso'])))
+
+        if 'subtype' in lu_type_info:
+            g.add((lu_type_obj,
+                   URIRef('https://www.w3.org/2009/08/skos-reference/skos.html#broader'),
+                   URIRef(lu_type_info['subtype'])))
+
+    return g
+
+
+
+
+
 def get_lexeme_info(lexeme,
                     g,
                     DCT,
@@ -144,8 +201,13 @@ def get_lu_type(lu, language):
     elif language == 'nld':
         lu_type = lu.lu_type
 
-    return lu_type
+    if lu_type == 'singleton':
+        return lu_type, None
 
+    lu_type_uri = LUTYPE_TO_LU_TYPE_URL[lu_type]
+    lu_type_obj = URIRef(lu_type_uri)
+
+    return lu_type, lu_type_obj
 
 def get_word_or_phrase(lu_type, lexemes, LEMON, lemon):
     """
@@ -230,7 +292,7 @@ def convert_to_lemon(lemon,
         print(f'lexicon uri: {lexicon_uri}')
 
     # initialize graph
-    g = Graph()
+    g = initialize_graph(namespace=namespace)
 
     LEMON = Namespace('http://lemon-model.net/lemon#')
     DCT = Namespace('http://purl.org/dc/terms/')
@@ -335,7 +397,12 @@ def convert_to_lemon(lemon,
                             lu_identifier=lu.ID)
 
         # LU type
-        lu_type = get_lu_type(lu=lu, language=language)
+        lu_type,\
+        lu_type_obj = get_lu_type(lu=lu, language=language)
+
+        if lu_type_obj is not None:
+            g.add((le_obj, RDF.type, lu_type_obj))
+
         word_or_phrase = get_word_or_phrase(lu_type=lu_type,
                                             lexemes=lu.lexemes,
                                             LEMON=LEMON,

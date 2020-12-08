@@ -90,7 +90,7 @@ def validate_lexeme(my_fn, lexeme, lu_type):
 
         # a lexeme of a phrasal verb does not need to have a POS attribute
         # we do not specify it for the verb particle
-        if all([lu_type == 'phrasal',
+        if all([lu_type in {'phrasal', 'exocentric compound'},
                 lexeme_attr == 'POS']):
             continue
 

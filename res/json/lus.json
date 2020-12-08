@@ -35,6 +35,63 @@
       "incorporated_fe" : "Origin",
       "timestamp" : null,
           "optional_lu_attrs" : {}
-          }
+          },
+    { "lexemes" : [{
+            "order" : "1",
+            "headword" : "false",
+            "breakBefore" : "false",
+            "POS" : "ART",
+            "name" : "de"
+        },
+        {
+            "order" : "2",
+            "headword" : "false",
+            "breakBefore" : "false",
+            "POS" : "N",
+            "name" : "laan"
+        },
+        {
+            "order" : "3",
+            "headword" : "false",
+            "breakBefore" : "false",
+            "POS" : "V",
+            "name" : "uitsturen"
+        }
+    ],
+      "lu_name" : "de laan uitsturen.v",
+      "definition" : "iemand ontslaan",
+      "status" : "Created",
+      "POS" : "V",
+      "frame" : "Firing",
+      "provenance" : "manual",
+      "lu_type" : "idiom",
+      "incorporated_fe" : null,
+      "timestamp" : [2020, 6, 29],
+      "optional_lu_attrs" : {}
+     },
+    { "lexemes" : [{
+            "order" : "1",
+            "headword" : "false",
+            "breakBefore" : "false",
+            "name" : "drie"
+        },
+      {
+        "order": "2",
+        "headword": "false",
+        "breakBefore": "false",
+        "name": "wieler"
+      }
+    ],
+      "lu_name" : "driewieler.n",
+      "definition" : "speelgoed met drie wielen.",
+      "status" : "Created",
+      "POS" : "N",
+      "frame" : "Vehicle",
+      "provenance" : "manual",
+      "lu_type" : "exocentric compound",
+      "incorporated_fe" : null,
+      "timestamp" : [2020, 6, 29],
+      "optional_lu_attrs" : {}
+     }
   ]
 }
