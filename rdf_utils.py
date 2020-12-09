@@ -43,15 +43,48 @@ LU_TYPE_URL_TO_INFO = {
 }
 
 
-def initialize_graph(namespace):
+COMP_ATTR_TO_URL = {}
+
+COMP_ATTR_TO_INFO = {
+    "order" : {
+        "type" : "http://www.w3.org/2002/07/owl#Thing",
+        "label" : "order",
+        "comment": "the order of the lexeme in the lemma (starting from 1)",
+        "seeAlso": "http://purl.org/olia/ubyCat.owl#position"
+    },
+    "headword" : {
+        "type": "http://www.w3.org/2002/07/owl#Thing",
+        "label" : "headword",
+        "comment" : "the lexeme is the head (true or false)",
+        "seeAlso": "http://purl.org/olia/ubyCat.owl#isHead"
+    },
+    "breakBefore" : {
+        "type": "http://www.w3.org/2002/07/owl#Thing",
+        "label" : "breakBefore",
+        "comment": "Can this lexeme be separated from the previous lexeme by another token?",
+        "seeAlso": "http://purl.org/olia/ubyCat.owl#isBreakBefore"
+    },
+    "name" : {
+        "type": "http://www.w3.org/2002/07/owl#Thing",
+        "label": "name",
+        "comment": "the lexeme itself",
+        "seeAlso" : "http://www.w3.org/ns/lemon/ontolex#writtenRep"
+    },
+    "incorporatedFE" : {
+        "type": "http://www.w3.org/2002/07/owl#Thing",
+        "label" : "incorporatedFE",
+        "comment" : "indicates the incorporated Frame Element of an LU, which can be indicated at the level of the lexeme and of the Lexical Unit"
+    }
+}
+
+
+def initialize_graph(g, namespace, SKOS):
     """
     initialize graph with our own relationships
 
     :return:
     """
-    g = Graph()
-
-    # TODO: lu types
+    # lu types
     for lu_type, lu_type_info in LU_TYPE_URL_TO_INFO.items():
         lu_type_url = f'{namespace}{lu_type.replace(" ","_")}'
         LUTYPE_TO_LU_TYPE_URL[lu_type] = lu_type_url
@@ -63,19 +96,31 @@ def initialize_graph(namespace):
 
         if 'subtype' in lu_type_info:
             g.add((lu_type_obj,
-                   URIRef('https://www.w3.org/2009/08/skos-reference/skos.html#broader'),
+                   SKOS.broader,
                    URIRef(lu_type_info['subtype'])))
+    
+    # component attributes
+    for comp_attr, comp_info in COMP_ATTR_TO_INFO.items():
+        comp_attr_url = f'{namespace}{comp_attr}'
+        COMP_ATTR_TO_URL[comp_attr] = comp_attr_url
 
-    return g
+        comp_attr_obj = URIRef(comp_attr_url)
+        g.add((comp_attr_obj, RDF.type, URIRef(comp_info['type'])))
+        g.add((comp_attr_obj, RDFS.label, Literal(comp_info['label'])))
+        g.add((comp_attr_obj, RDFS.comment, Literal(comp_info['comment'])))
 
-
-
+        if 'seeAlso' in comp_info:
+            g.add((comp_attr_obj, RDFS.seeAlso, URIRef(comp_info['seeAlso'])))
 
 
 def get_lexeme_info(lexeme,
+                    premon,
+                    frame_uri,
+                    fn_pos_to_lexinfo,
                     g,
                     DCT,
-                    LEMON):
+                    LEMON,
+                    LEXINFO):
     """
     generate dictionary of information used per lexem
 
@@ -97,17 +142,57 @@ def get_lexeme_info(lexeme,
 
     info = {
         'bn_node' : bn_node,
-        'le_obj_of_component' : le_obj_of_component
+        'le_obj_of_component' : le_obj_of_component,
+        'attr_to_value' : {
+        }
 
     }
 
+
+    for attr, string_value in lexeme.items():
+
+        if attr == 'POS':
+            attr_obj = LEXINFO.partOfSpeech
+            value_obj = URIRef(fn_pos_to_lexinfo[string_value])
+        elif attr in {'breakBefore', 'headword', 'name'}:
+            attr_obj = URIRef(COMP_ATTR_TO_URL[attr])
+            value_obj = Literal(string_value)
+        elif attr == 'order':
+            attr_obj = URIRef(COMP_ATTR_TO_URL[attr])
+            value_obj = Literal(string_value, datatype=XSD.integer)
+        elif attr == 'incorporatedFE':
+            fe_uri = get_fe_uri(graph=premon, frame_uri=frame_uri, fe_label=string_value)
+            attr_obj = URIRef(COMP_ATTR_TO_URL[attr])
+            value_obj = URIRef(fe_uri)
+        elif attr == 'lu_id':
+            pass # this is covered outside of this function
+        else:
+            raise Exception(f'attr ({attr}) not known. Please inspect.')
+
+        info['attr_to_value'][attr_obj] = value_obj
+
     return info
 
+def add_complement_attributes(g, lexeme_info, comp_obj):
+    """
+
+    :param g:
+    :param lexeme_info:
+    :return:
+    """
+    for attr_obj, value_obj in lexeme_info['attr_to_value'].items():
+        g.add((comp_obj, attr_obj, value_obj))
+
+
 def add_decomposition(g,
+                      fn_pos_to_lexinfo,
+                      frame_uri,
                       lu,
                       LEMON,
+                      LEXINFO,
                       DCT,
                       lemon,
+                      premon,
                       le_obj):
     """
     add lemon representation of decomposition of terms
@@ -119,16 +204,18 @@ def add_decomposition(g,
     :param rdflib.graph.Graph lemon: lemon graph
     :param rdflib.URIRef le_obj: uriref of LexicalEntry
     """
-
-
     # LE -> : blank node representing first :ComponentList
     assert LEMON.decomposition in lemon.subjects()
 
     lexeme_order_to_info = {
         lexeme['order'] : get_lexeme_info(lexeme=lexeme,
+                                          premon=premon,
+                                          frame_uri=frame_uri,
+                                          fn_pos_to_lexinfo=fn_pos_to_lexinfo,
                                           g=g,
                                           DCT=DCT,
-                                          LEMON=LEMON)
+                                          LEMON=LEMON,
+                                          LEXINFO=LEXINFO)
         for lexeme in lu.lexemes
     }
 
@@ -142,6 +229,8 @@ def add_decomposition(g,
         if lexeme_info['le_obj_of_component'] is not None:
             assert LEMON.element in lemon.subjects()
             g.add((comp_obj, LEMON.element, lexeme_info['le_obj_of_component']))
+
+        add_complement_attributes(g=g, lexeme_info=lexeme_info, comp_obj=comp_obj)
 
         # add relationships between :LexicalEntry and :ComponentList(s)
         order_plus_one = lexeme_order + 1
@@ -255,6 +344,7 @@ def convert_to_lemon(lemon,
                      fn_pos_to_lexinfo,
                      your_fn,
                      namespace,
+                     namespace_prefix,
                      language,
                      major_version,
                      minor_version,
@@ -272,6 +362,7 @@ def convert_to_lemon(lemon,
     :param str namespace: a namespace.
     for Dutch, we use http://rdf.cltl.nl/dfn/
     for English, we use http://rdf.cltl.nl/efn/
+    :param str namespace_prefix: e.g., dfn for Dutch FrameNet
     :param str language: supported: nld | eng
     :param int major_version: the major version
     :param int minor_version: the minor version
@@ -291,18 +382,25 @@ def convert_to_lemon(lemon,
     if verbose >= 2:
         print(f'lexicon uri: {lexicon_uri}')
 
-    # initialize graph
-    g = initialize_graph(namespace=namespace)
+
+    g = Graph()
 
     LEMON = Namespace('http://lemon-model.net/lemon#')
     DCT = Namespace('http://purl.org/dc/terms/')
     LEXINFO = Namespace('http://www.lexinfo.net/ontology/3.0/lexinfo#')
     ONTOLEX = Namespace('http://www.w3.org/ns/lemon/ontolex#')
+    SKOS =  Namespace('http://www.w3.org/2004/02/skos/core#')
+    FN = Namespace(namespace)
 
     g.bind('lemon', LEMON)
     g.bind('dct', DCT)
     g.bind('lexinfo', LEXINFO)
     g.bind('ontolex', ONTOLEX)
+    g.bind('skos', SKOS)
+    g.bind(namespace_prefix, FN)
+
+    # initialize graph
+    initialize_graph(g=g, namespace=namespace, SKOS=SKOS)
 
     # update lexicon information
     lexicon_uri_obj = URIRef(lexicon_uri)
@@ -410,6 +508,11 @@ def convert_to_lemon(lemon,
 
         g.add((le_obj, RDF.type, word_or_phrase))
 
+        # evokes relationship
+        frame_uri = get_rdf_uri(premon_nt=premon,
+                                frame_label=lu.frame.name)
+        frame_obj = URIRef(frame_uri)
+
         if lu_type == 'singleton':
             continue
         elif lu_type in {'endocentric compound',
@@ -417,10 +520,14 @@ def convert_to_lemon(lemon,
                          'idiom',
                          'phrasal'}:
             add_decomposition(g=g,
+                              fn_pos_to_lexinfo=fn_pos_to_lexinfo,
+                              frame_uri=frame_uri,
                               lu=lu,
                               DCT=DCT,
                               LEMON=LEMON,
+                              LEXINFO=LEXINFO,
                               lemon=lemon,
+                              premon=premon,
                               le_obj=le_obj)
         else:
             raise Exception(f'lu type ({lu_type}) not known')
@@ -553,3 +660,30 @@ def get_rdf_label(graph, uri):
     assert len(labels) == 1, f'expected one label for {uri}, got {labels}'
 
     return labels.pop()
+
+
+def get_fe_uri(graph, frame_uri, fe_label):
+    """
+
+    :param graph:
+    :param frame_uri:
+    :return:
+    """
+    query = """SELECT ?o WHERE {
+             ?o <http://www.w3.org/2000/01/rdf-schema#label> "%s" . 
+             <%s> <http://premon.fbk.eu/ontology/core#semRole> ?o
+        }"""
+    the_query = query % (fe_label, frame_uri)
+
+    results = graph.query(the_query)
+
+    labels = set()
+    for result in results:
+        label = str(result.asdict()['o'])
+        labels.add(label)
+
+    assert len(labels) == 1, f'expected one label for frame ({frame_uri}) with FE label ({fe_label}), got {labels}'
+
+    return labels.pop()
+
+
