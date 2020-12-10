@@ -5,6 +5,9 @@ from rdflib import Literal, BNode
 from rdflib import ConjunctiveGraph, Graph
 
 
+from .LexicalDataD2TAnnotationTool import lemmas_from_lu_name
+
+
 SUPPORTED_LANGUAGES = {
     'eng',
     'nld'
@@ -453,7 +456,9 @@ def convert_to_lemon(lemon,
         assert LEMON.Form in lemon.subjects()
         g.add((le_form_obj, RDF.type, LEMON.Form))
         assert LEMON.writtenRep in lemon.subjects()
-        g.add((le_form_obj, LEMON.writtenRep, Literal(lemma, lang=language)))
+
+        for lemma_variant in lemmas_from_lu_name(lemma):
+            g.add((le_form_obj, LEMON.writtenRep, Literal(lemma_variant, lang=language)))
 
         assert LEMON.canonicalForm in lemon.subjects()
         g.add((le_obj, LEMON.canonicalForm, le_form_obj))
