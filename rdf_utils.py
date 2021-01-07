@@ -1,8 +1,12 @@
+from collections import defaultdict
+
 from rdflib.namespace import RDF, RDFS, XSD
 from rdflib.namespace import Namespace
 from rdflib import URIRef
 from rdflib import Literal, BNode
 from rdflib import ConjunctiveGraph, Graph
+from graphviz import Digraph
+
 
 
 from .LexicalDataD2TAnnotationTool import lemmas_from_lu_name
@@ -224,14 +228,17 @@ def add_decomposition(g,
 
     for lexeme_order, lexeme_info in sorted(lexeme_order_to_info.items()):
 
-        # TODO: add complement information in separate function
         comp_uri = le_obj + f'#Component{lexeme_order}'
         comp_obj = URIRef(comp_uri)
+        assert LEMON.Component in lemon.subjects()
+        g.add((comp_obj, RDF.type, LEMON.Component))
 
         g.add((lexeme_info['bn_node'], RDF.first, comp_obj))
         if lexeme_info['le_obj_of_component'] is not None:
             assert LEMON.element in lemon.subjects()
             g.add((comp_obj, LEMON.element, lexeme_info['le_obj_of_component']))
+            assert LEMON.Component in lemon.subjects()
+            g.add((comp_obj, RDF.type, LEMON.Component))
 
         add_complement_attributes(g=g, lexeme_info=lexeme_info, comp_obj=comp_obj)
 
@@ -288,10 +295,11 @@ def get_lu_type(lu, language):
     :param lu:
     :return:
     """
-    if language == 'eng':
-        raise NotImplementedError('lu type function not implemented.')
-    elif language == 'nld':
+    if language == 'nld':
         lu_type = lu.lu_type
+
+    elif language == 'eng':
+        return None, None
 
     if lu_type == 'singleton':
         return lu_type, None
@@ -301,7 +309,7 @@ def get_lu_type(lu, language):
 
     return lu_type, lu_type_obj
 
-def get_word_or_phrase(lu_type, lexemes, LEMON, lemon):
+def get_word_or_phrase(lu_type, lexemes, language, LEMON, lemon):
     """
 
     :param lu_type:
@@ -309,24 +317,34 @@ def get_word_or_phrase(lu_type, lexemes, LEMON, lemon):
     :return:
     """
 
-    if lu_type is not None:
+    if language == 'eng':
 
-        if lu_type in {'endocentric compound',
-                       'exocentric compound',
-                       'singleton'}:
+        if len(lexemes) == 1:
             word_or_phrase = 'word'
-        elif lu_type in {'phrasal',
-                         'idiom'}:
+        elif len(lexemes) >= 2:
             word_or_phrase = 'phrase'
         else:
-            raise Exception(f'unknown lu type {lu_type}')
-    else:
-        num_lexemes = len(lexemes)
+            raise Exception(f'there should be 1 or more lexemes: {lexemes}')
 
-        if num_lexemes == 1:
-            word_or_phrase = 'word'
-        elif num_lexemes >= 2:
-            word_or_phrase = 'phrase'
+    if language == 'nld':
+        if lu_type is not None:
+
+            if lu_type in {'endocentric compound',
+                           'exocentric compound',
+                           'singleton'}:
+                word_or_phrase = 'word'
+            elif lu_type in {'phrasal',
+                             'idiom'}:
+                word_or_phrase = 'phrase'
+            else:
+                raise Exception(f'unknown lu type {lu_type}')
+        else:
+            num_lexemes = len(lexemes)
+
+            if num_lexemes == 1:
+                word_or_phrase = 'word'
+            elif num_lexemes >= 2:
+                word_or_phrase = 'phrase'
 
     lemon_obj = None
 
@@ -422,8 +440,6 @@ def convert_to_lemon(lemon,
                                                     datatype=XSD.decimal)))
 
 
-    # TODO: lu definition
-
     # update for each LE and LU
     for lu in your_fn.lus():
 
@@ -474,10 +490,27 @@ def convert_to_lemon(lemon,
         assert LEMON.isSenseOf in lemon.subjects()
         g.add((lu_obj, LEMON.isSenseOf, le_obj))
 
+        assert LEMON.definition in lemon.subjects()
+        g.add((lu_obj, LEMON.definition, Literal(lu.definition,
+                                                 lang=language)))
+
         # evokes relationship
         frame_uri = get_rdf_uri(premon_nt=premon,
                                 frame_label=lu.frame.name)
         frame_obj = URIRef(frame_uri)
+
+        # add incorporatedFE if it is there
+        incorporated_fe_label = lu.get('incorporatedFE', None)
+
+        # mistakes in English FrameNet
+        if all([frame_uri == 'http://premon.fbk.eu/resource/fn17-measurable_attributes',
+                incorporated_fe_label == 'Dimension']):
+            incorporated_fe_label = None
+
+        if incorporated_fe_label is not None:
+            fe_uri = get_fe_uri(graph=premon, frame_uri=frame_uri, fe_label=incorporated_fe_label)
+            attr_obj = URIRef(COMP_ATTR_TO_URL['incorporatedFE'])
+            g.add((lu_obj, attr_obj, URIRef(fe_uri)))
 
         assert frame_obj in premon.subjects()
         assert ONTOLEX.evokes in ontolex.subjects()
@@ -508,6 +541,7 @@ def convert_to_lemon(lemon,
 
         word_or_phrase = get_word_or_phrase(lu_type=lu_type,
                                             lexemes=lu.lexemes,
+                                            language=language,
                                             LEMON=LEMON,
                                             lemon=lemon)
 
@@ -516,26 +550,41 @@ def convert_to_lemon(lemon,
         # evokes relationship
         frame_uri = get_rdf_uri(premon_nt=premon,
                                 frame_label=lu.frame.name)
-        frame_obj = URIRef(frame_uri)
 
-        if lu_type == 'singleton':
-            continue
-        elif lu_type in {'endocentric compound',
-                         'exocentric compound',
-                         'idiom',
-                         'phrasal'}:
-            add_decomposition(g=g,
-                              fn_pos_to_lexinfo=fn_pos_to_lexinfo,
-                              frame_uri=frame_uri,
-                              lu=lu,
-                              DCT=DCT,
-                              LEMON=LEMON,
-                              LEXINFO=LEXINFO,
-                              lemon=lemon,
-                              premon=premon,
-                              le_obj=le_obj)
-        else:
-            raise Exception(f'lu type ({lu_type}) not known')
+
+        if language == 'nld':
+            if lu_type == 'singleton':
+                continue
+            elif lu_type in {'endocentric compound',
+                             'exocentric compound',
+                             'idiom',
+                             'phrasal'}:
+                add_decomposition(g=g,
+                                  fn_pos_to_lexinfo=fn_pos_to_lexinfo,
+                                  frame_uri=frame_uri,
+                                  lu=lu,
+                                  DCT=DCT,
+                                  LEMON=LEMON,
+                                  LEXINFO=LEXINFO,
+                                  lemon=lemon,
+                                  premon=premon,
+                                  le_obj=le_obj)
+            else:
+                raise Exception(f'lu type ({lu_type}) not known')
+
+        elif language == 'eng':
+            if word_or_phrase == LEMON.Phrase:
+                add_decomposition(g=g,
+                                  fn_pos_to_lexinfo=fn_pos_to_lexinfo,
+                                  frame_uri=frame_uri,
+                                  lu=lu,
+                                  DCT=DCT,
+                                  LEMON=LEMON,
+                                  LEXINFO=LEXINFO,
+                                  lemon=lemon,
+                                  premon=premon,
+                                  le_obj=le_obj)
+
 
         if verbose >= 5:
             print('QUITTING AFTER FIRST ITERATION')
@@ -692,3 +741,182 @@ def get_fe_uri(graph, frame_uri, fe_label):
     return labels.pop()
 
 
+
+def get_attributes(fn_in_lemon, the_lemon_type):
+    """
+
+    :param graph:
+    :param the_type:
+    :return:
+    """
+    query = """SELECT ?s ?p ?o WHERE {
+                 ?s ?p ?o .
+                 ?s <%s> <%s>
+            }"""
+    the_query = query % (RDF.type, the_lemon_type)
+
+    results = fn_in_lemon.query(the_query)
+
+    s_to_attrs = defaultdict(set)
+    for result in results:
+        as_dict = result.asdict()
+        s = as_dict['s']
+        attribute = as_dict['p']
+        s_to_attrs[s].add(attribute)
+
+    num_s = len(s_to_attrs)
+
+    attr_to_freq = defaultdict(int)
+    for subject, s_attrs in s_to_attrs.items():
+        for s_attr in s_attrs:
+            attr_to_freq[s_attr] += 1
+
+    attr_to_info = {}
+    for attr, freq in attr_to_freq.items():
+        ratio = (freq / num_s)
+        info = {
+            'freq' : freq,
+            'ratio' : ratio
+        }
+        attr_to_info[attr] = info
+
+    return attr_to_info
+
+
+def get_attributes_between_two(fn_in_lemon, type_one, type_two):
+    """
+
+    :param graph:
+    :param the_type:
+    :return:
+    """
+    query = """SELECT ?p WHERE {
+                 ?s ?p ?o . 
+                 ?s <%s> <%s> .
+                 ?o <%s> <%s> .
+            }"""
+    the_query = query % (RDF.type, type_one,
+                         RDF.type, type_two)
+
+    results = fn_in_lemon.query(the_query)
+
+    attrs = set()
+    for result in results:
+        as_dict = result.asdict()
+        attribute = as_dict['p']
+        attrs.add(attribute)
+
+    return attrs
+
+
+
+
+
+def shorten_namespaces(fn_in_lemon,
+                       uriref):
+    uri = uriref.toPython()
+
+    long_to_short = {
+        uriref.toPython() : short
+        for short, uriref in fn_in_lemon.namespaces()
+    }
+
+    for long, short in long_to_short.items():
+        uri = uri.replace(long, f'{short}:')
+
+    return uri
+
+
+def get_id_and_label(fn_in_lemon,
+                     uriref,
+                     uriref_to_attr_to_info={}):
+    """
+
+    :param fn_in_lemon:
+    :param uriref:
+    :return:
+    """
+    uri = shorten_namespaces(fn_in_lemon=fn_in_lemon, uriref=uriref)
+
+    attr_to_info = uriref_to_attr_to_info.get(uriref, {})
+    attrs_labels = []
+    for attr_uriref, attr_info in attr_to_info.items():
+        short_attr = shorten_namespaces(fn_in_lemon=fn_in_lemon,
+                                        uriref=attr_uriref)
+        perc = attr_info['ratio'] * 100
+        perc = round(perc, 1)
+        attrs_labels.append((perc, f'{short_attr} ({perc}%)'))
+
+    node_id = uri.replace(':', "_")
+
+    if attr_to_info:
+        the_labels = sorted(attrs_labels, reverse=True)
+        attr_part = '{' + '|'.join([label[1] for label in the_labels]) + '}'
+        node_label = '|'.join([uri, attr_part])
+    else:
+        node_label = uri
+
+    return node_id, node_label
+
+
+def derive_model(fn_in_lemon, output_path=None, verbose=0):
+    """
+
+    :param fn_in_lemon:
+    :return:
+    """
+    LEMON = Namespace('http://lemon-model.net/lemon#')
+
+    the_types = [LEMON.LexicalEntry,
+                 LEMON.LexicalSense,
+                 LEMON.Form,
+                 LEMON.Component]
+
+    type_to_attr_to_info = {}
+    for a_type in the_types:
+        attr_to_info = get_attributes(fn_in_lemon=fn_in_lemon,
+                                      the_lemon_type=a_type)
+        type_to_attr_to_info[a_type] = attr_to_info
+
+    type1_type2_to_attr = {}
+    for type_one in the_types:
+        for type_two in the_types:
+            if type_one != type_two:
+                attrs = get_attributes_between_two(fn_in_lemon=fn_in_lemon,
+                                                   type_one=type_one,
+                                                   type_two=type_two)
+
+                if attrs:
+                    assert len(attrs) == 1
+                    type1_type2_to_attr[(type_one, type_two)] = attrs.pop()
+
+    g = Digraph()
+
+    # add relationships between lemon types
+    for (type_one, type_two), attr in type1_type2_to_attr.items():
+        one_id, one_label = get_id_and_label(fn_in_lemon=fn_in_lemon,
+                                              uriref=type_one,
+                                              uriref_to_attr_to_info=type_to_attr_to_info)
+
+        two_id, two_label = get_id_and_label(fn_in_lemon=fn_in_lemon,
+                                              uriref=type_two,
+                                              uriref_to_attr_to_info=type_to_attr_to_info)
+
+        attr_id, attr_label = get_id_and_label(fn_in_lemon=fn_in_lemon,
+                                                uriref=attr)
+
+        g.node(name=one_id, label=one_label, _attributes={'shape' : 'record'})
+        g.node(name=two_id, label=two_label, _attributes={'shape' : 'record'})
+
+        g.edge(tail_name=one_id,
+               head_name=two_id,
+               label=attr_label)
+
+    # write to disk if preferred
+    g.format = 'svg'
+    if output_path is not None:
+        g.render(output_path)
+        if verbose >= 1:
+            print(f'written FN in Lemon to {output_path}')
+
+    return g

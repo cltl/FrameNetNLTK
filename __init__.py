@@ -1,5 +1,4 @@
 import os
-import pickle
 import json
 from rdflib import Graph
 
@@ -19,6 +18,7 @@ from .lexicon_utils import get_luid
 from .rdf_utils import generate_lexicon_rdf_uri
 from .rdf_utils import generate_le_and_lu_rdf_uri
 from .rdf_utils import convert_to_lemon
+from .rdf_utils import derive_model
 
 # annotations
 from .annotation_utils import add_annotations_from_naf_31

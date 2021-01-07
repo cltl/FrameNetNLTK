@@ -11,5 +11,6 @@
   "ADV" : "http://www.lexinfo.net/ontology/3.0/lexinfo#adverb",
   "NUM" : "http://www.lexinfo.net/ontology/3.0/lexinfo#numeral",
   "PREP": "http://www.lexinfo.net/ontology/3.0/lexinfo#preposition",
-  "I" : "http://www.lexinfo.net/ontology/3.0/lexinfo#infix"
+  "I" : "http://www.lexinfo.net/ontology/3.0/lexinfo#infix",
+  "AVP" : "http://www.lexinfo.net/ontology/2.0/lexinfo#Particle"
 }
