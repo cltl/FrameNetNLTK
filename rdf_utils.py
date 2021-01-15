@@ -9,9 +9,6 @@ from graphviz import Digraph
 
 
 
-from .LexicalDataD2TAnnotationTool import lemmas_from_lu_name
-
-
 SUPPORTED_LANGUAGES = {
     'eng',
     'nld'
@@ -388,6 +385,8 @@ def convert_to_lemon(lemon,
     :param int major_version: the major version
     :param int minor_version: the minor version
     """
+    from .LexicalDataD2TAnnotationTool import lemmas_from_lu_name
+
     # loading premon
     premon = load_nt_graph(nt_path=premon_nt_path)
 
@@ -790,23 +789,45 @@ def get_attributes_between_two(fn_in_lemon, type_one, type_two):
     :param the_type:
     :return:
     """
-    query = """SELECT ?p WHERE {
+    query = """SELECT ?s WHERE {
                  ?s ?p ?o . 
                  ?s <%s> <%s> .
-                 ?o <%s> <%s> .
             }"""
-    the_query = query % (RDF.type, type_one,
-                         RDF.type, type_two)
-
+    the_query = query % (RDF.type, type_one)
     results = fn_in_lemon.query(the_query)
 
-    attrs = set()
+    all_s = set()
     for result in results:
         as_dict = result.asdict()
-        attribute = as_dict['p']
-        attrs.add(attribute)
+        s = as_dict['s']
+        all_s.add(s)
 
-    return attrs
+    query = """SELECT ?o WHERE {
+                 ?s ?p ?o . 
+                 ?o <%s> <%s> .
+            }"""
+    the_query = query % (RDF.type, type_two)
+    results = fn_in_lemon.query(the_query)
+
+    all_o = set()
+    for result in results:
+        as_dict = result.asdict()
+        o = as_dict['o']
+        all_o.add(o)
+
+    s_p = set()
+    for subject, predicate in fn_in_lemon.subject_predicates():
+        if subject in all_s:
+            s_p.add(predicate)
+
+    p_o = set()
+    for predicate, object in fn_in_lemon.predicate_objects():
+        if object in all_o:
+            p_o.add(predicate)
+
+    result = s_p & p_o
+
+    return result
 
 
 
@@ -882,6 +903,9 @@ def derive_model(fn_in_lemon, output_path=None, verbose=0):
     for type_one in the_types:
         for type_two in the_types:
             if type_one != type_two:
+
+                if verbose >= 4:
+                    print(f'computing between {type_one} and {type_two}')
                 attrs = get_attributes_between_two(fn_in_lemon=fn_in_lemon,
                                                    type_one=type_one,
                                                    type_two=type_two)
