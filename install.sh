@@ -34,5 +34,3 @@ cd ../..
 rm -rf LexicalDataD2TAnnotationTool
 git clone https://github.com/cltl/LexicalDataD2TAnnotationTool || exit
 cd LexicalDataD2TAnnotationTool || exit
-pip install -r requirements.txt
-bash install.sh || exit
