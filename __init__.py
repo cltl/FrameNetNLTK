@@ -19,6 +19,7 @@ from .rdf_utils import generate_lexicon_rdf_uri
 from .rdf_utils import generate_le_and_lu_rdf_uri
 from .rdf_utils import convert_to_lemon
 from .rdf_utils import derive_model
+from .rdf_utils import convert_rbn_to_lemon
 
 # annotations
 from .annotation_utils import add_annotations_from_naf_31
@@ -51,6 +52,14 @@ path_fn_pos_to_lexinfo = os.path.join(dir_path,
                                       'mappings',
                                       'fn_pos_to_lexinfo.json')
 fn_pos_to_lexinfo = json.load(open(path_fn_pos_to_lexinfo))
+
+path_rbn_pos_to_lexinfo = os.path.join(dir_path,
+                                      'res',
+                                      'rdf',
+                                      'mappings',
+                                      'rbn_pos_to_lexinfo.json')
+rbn_pos_to_lexinfo = json.load(open(path_rbn_pos_to_lexinfo))
+
 
 # premon
 premon_nt = os.path.join(dir_path, 'res/premon/premon-2018a-fn17-noinf.nt')
