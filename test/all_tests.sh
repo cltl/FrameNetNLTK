@@ -16,5 +16,3 @@ mkdir stats
 #pytest test_lu_rdf_uri.py || exit
 #python compute_stats.py || exit
 #python convert_rbn_to_lemon.py || exit
-python convert_to_lemon.py || exit
-python convert_rbn_lemon_to_diagram.py || exit
