@@ -19,7 +19,6 @@ from .rdf_utils import generate_lexicon_rdf_uri
 from .rdf_utils import generate_le_and_lu_rdf_uri
 from .rdf_utils import convert_to_lemon
 from .rdf_utils import derive_model
-from .rdf_utils import convert_rbn_to_lemon
 
 # annotations
 from .annotation_utils import add_annotations_from_naf_31
@@ -71,3 +70,11 @@ ontolex_path = os.path.join(dir_path,
                             'ontolex.rdf')
 ontolex = Graph()
 ontolex.parse(ontolex_path)
+
+# skos
+skos_path = os.path.join(dir_path,
+                         'res',
+                         'skos',
+                         'skos.rdf')
+skos = Graph()
+skos.parse(skos_path)
