@@ -99,24 +99,3 @@ add_lu(your_lexicon_folder='test_lexicon',
        incorporated_fe="Function",
        verbose=2)
 
-lexemes = [{
-    'order' : '1',
-    'headword' : 'false',
-    'breakBefore' : 'false',
-    'POS' : 'N',
-    'name' : 'Duitser'
-}]
-
-add_lu(your_lexicon_folder='test_lexicon',
-       fn_en=fn,
-       lu_name='Duitser.n',
-       lexemes=lexemes,
-       definition='uit Duitsland',
-       status='Created',
-       pos='N',
-       frame='People_by_origin',
-       provenance='manual',
-       lu_type='singleton',
-       incorporated_fe="Origin",
-       optional_lu_attrs={"RBN_sense_ID" : "r_n-11800", "RBN_matching_relation" : "equivalence"},
-       verbose=2)

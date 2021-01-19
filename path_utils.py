@@ -46,7 +46,7 @@ def get_relevant_paths(root, check_if_exists=True):
         full_path = os.path.join(root, basename)
 
         if check_if_exists:
-            assert os.path.exists(full_path)
+            assert os.path.exists(full_path), f'{full_path} does not exist, but check_if_exits was set to True.'
         label_to_path[label] = full_path
 
     label_to_path['frame_to_xml_path'] = dict()

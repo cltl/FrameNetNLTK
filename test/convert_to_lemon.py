@@ -1,6 +1,7 @@
 import sys
 import os
 sys.path.insert(0, '../..')
+from nltk.corpus import framenet as fn
 import FrameNetNLTK
 from FrameNetNLTK import load, convert_to_lemon
 
@@ -26,16 +27,15 @@ convert_to_lemon(lemon=FrameNetNLTK.lemon,
                  output_path=output_path,
                  verbose=4)
 
-
-output_path = os.path.join(os.getcwd(),
-                           'stats',
-                           'efn_1.7.ttl')
+#output_path = os.path.join(os.getcwd(),
+#                           'stats',
+#                           'efn_1.7.ttl')
 
 #convert_to_lemon(lemon=FrameNetNLTK.lemon,
 #                 premon_nt_path=FrameNetNLTK.premon_nt,
 #                 ontolex=FrameNetNLTK.ontolex,
 #                 fn_pos_to_lexinfo=FrameNetNLTK.fn_pos_to_lexinfo,
-#                 your_fn=my_fn,
+#                 your_fn=fn,
 #                 namespace='http://rdf.cltl.nl/efn/',
 #                 namespace_prefix='efn',
 #                 language='eng',

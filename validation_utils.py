@@ -1,5 +1,7 @@
 import nltk
 
+from rdflib import Namespace, URIRef
+
 
 STATUS = {'Unknown', 'FN1_Sent', 'Test', 'Add_Annotation',
           'New', 'Finished_Checked', 'FN1_NoSent',
@@ -220,3 +222,23 @@ def validate_lexemes_vs_luname(lexemes, lu_type, lu_lemma):
             error_message = '\n'.join(parts)
             assert name in lu_lemma, error_message
 
+
+
+def validate_skos(skos_predicate_to_external_references, skos):
+    skos_namespace = None
+
+    if skos_predicate_to_external_references:
+        assert skos is not None, f'skos is None. Please provide FrameNetNLTK.skos'
+
+    if skos is not None:
+        for prefix, namespace in skos.namespaces():
+            if prefix == 'skos':
+                skos_namespace = namespace.toPython()
+
+        SKOS = Namespace(skos_namespace)
+
+        for predicate in skos_predicate_to_external_references:
+            pred_uriref = URIRef(SKOS + predicate)
+            assert pred_uriref in skos.subjects(), f'{predicate} ({pred_uriref}) not part of skos.'
+
+    return skos_namespace

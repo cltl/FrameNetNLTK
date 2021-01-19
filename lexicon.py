@@ -21,7 +21,8 @@ def add_lu(your_lexicon_folder,
            lu_type='singleton',
            incorporated_fe=None,
            timestamp=None,
-           optional_lu_attrs={},
+           skos_predicate_to_external_references={},
+           skos=None,
            verbose=0):
     succes = False
 
@@ -41,6 +42,8 @@ def add_lu(your_lexicon_folder,
     validation_utils.validate_lexemes_vs_luname(lexemes=lexemes,
                                                 lu_type=lu_type,
                                                 lu_lemma=lu_lemma)
+    skos_namespace = validation_utils.validate_skos(skos_predicate_to_external_references=skos_predicate_to_external_references,
+                                                    skos=skos)
 
     if incorporated_fe is not None:
         validation_utils.validate_incorporated_fe(fn_en=fn_en,
@@ -89,7 +92,8 @@ def add_lu(your_lexicon_folder,
                                  definition,
                                  lu_type,
                                  incorporated_fe=incorporated_fe,
-                                 optional_lu_attrs=optional_lu_attrs)
+                                 skos_predicate_to_external_references=skos_predicate_to_external_references,
+                                 skos_namespace=skos_namespace)
 
     # add lu element to luIndex.xml
     xml_utils.add_lu_el_to_luindex(path_lu_index=paths_your_fn['luIndex.xml'],
@@ -100,7 +104,8 @@ def add_lu(your_lexicon_folder,
                                    pos=pos,
                                    lu_id=lu_id,
                                    lu_type=lu_type,
-                                   optional_lu_attrs=optional_lu_attrs)
+                                   skos_predicate_to_external_references=skos_predicate_to_external_references,
+                                   skos_namespace=skos_namespace)
 
     # add lu to frame/FRAME_NAME.xml file
     xml_utils.add_lu_to_frame_xml_file(your_fn,
@@ -116,7 +121,8 @@ def add_lu(your_lexicon_folder,
                                        definition,
                                        lu_type,
                                        incorporated_fe=incorporated_fe,
-                                       optional_lu_attrs=optional_lu_attrs)
+                                       skos_predicate_to_external_references=skos_predicate_to_external_references,
+                                       skos_namespace=skos_namespace)
 
     if verbose >= 1:
         print(f'added lu id {lu_id}: {lu_lemma}.{pos} -> {frame}')
@@ -160,7 +166,6 @@ def add_lus_from_json(your_lexicon_folder,
                         lu_type=lu['lu_type'],
                         incorporated_fe=lu['incorporated_fe'],
                         timestamp=the_timestamp,
-                        optional_lu_attrs=lu['optional_lu_attrs'],
                         verbose=verbose)
 
         if succes:
@@ -186,7 +191,7 @@ def remove_lu(your_lexicon_folder,
     assert type(lu_id) == int, f'the lu id has to be an integer, you provided {type(lu_id)}'
 
     your_fn = load_utils.load(folder=your_lexicon_folder)
-    paths_your_fn = path_utils.get_relevant_paths(your_fn.root)
+    paths_your_fn = path_utils.get_relevant_paths(your_fn.root, check_if_exists=False)
 
     # inspect that no endocentric compound is referring to it in a lexeme
     source_lu_ids = set()

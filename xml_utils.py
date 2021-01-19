@@ -1,5 +1,6 @@
 import os
 import shutil
+import copy
 
 from lxml import etree
 
@@ -124,6 +125,25 @@ def create_lexeme_els(lexemes):
     return lexeme_els
 
 
+def add_skos_namespace(old_root, skos_namespace):
+    if skos_namespace is not None:
+        etree.register_namespace('skos', skos_namespace)
+        root = copy.deepcopy(old_root)
+    else:
+        root = old_root
+
+    doc = root.getroottree()
+
+    return doc, root
+
+def add_skos_attributes(element, skos_predicate_to_external_references, skos_namespace):
+    for skos_predicate, external_refs in skos_predicate_to_external_references.items():
+        attribute = '{%s}%s' % (skos_namespace, skos_predicate)
+        value = '||'.join(external_refs)
+        element.set(attribute, value)
+
+
+
 def create_lu_xml_file(fn_en,
                        your_fn,
                        frame,
@@ -135,7 +155,8 @@ def create_lu_xml_file(fn_en,
                        definition,
                        lu_type,
                        incorporated_fe=None,
-                       optional_lu_attrs={}):
+                       skos_predicate_to_external_references={},
+                       skos_namespace=None):
     frame = fn_en.frame_by_name(frame)
 
     assert len(frame.lexUnit), f'{frame} is not lexicalized in English. Not able to add the LU.'
@@ -154,6 +175,12 @@ def create_lu_xml_file(fn_en,
     doc = etree.parse(input_path, parser)
     root = doc.getroot()
 
+    doc, root = add_skos_namespace(old_root=root,
+                                   skos_namespace=skos_namespace)
+    add_skos_attributes(element=root,
+                        skos_predicate_to_external_references=skos_predicate_to_external_references,
+                        skos_namespace=skos_namespace)
+
     root.set('status', status)
     root.set('POS', pos)
     root.set('name', f'{lemma}.{pos.lower()}')
@@ -166,9 +193,6 @@ def create_lu_xml_file(fn_en,
     else:
         if 'incorporatedFE' in root.attrib:
             del root.attrib['incorporatedFE']
-
-    for key, value in optional_lu_attrs.items():
-        root.set(key, value)
 
     def_el = root.find('{http://framenet.icsi.berkeley.edu}definition')
     if definition is None:
@@ -192,6 +216,7 @@ def create_lu_xml_file(fn_en,
     output_path = os.path.join(your_fn.root,
                                your_fn._lu_dir,
                                f'lu{lu_id}.xml')
+
     doc.write(output_path,
               encoding='utf-8',
               pretty_print=True,
@@ -207,10 +232,14 @@ def add_lu_el_to_luindex(path_lu_index,
                          pos,
                          lu_id,
                          lu_type,
-                         optional_lu_attrs={}):
+                         skos_predicate_to_external_references={},
+                         skos_namespace=None):
     parser = etree.XMLParser(remove_blank_text=True)
     doc = etree.parse(path_lu_index, parser)
     root = doc.getroot()
+
+    doc, root = add_skos_namespace(old_root=root,
+                                   skos_namespace=skos_namespace)
 
     lu_el = etree.Element('lu',
                           attrib={
@@ -224,8 +253,9 @@ def add_lu_el_to_luindex(path_lu_index,
                               'ID': str(lu_id)
                           })
 
-    for key, value in optional_lu_attrs.items():
-        lu_el.set(key, value)
+    add_skos_attributes(element=lu_el,
+                        skos_predicate_to_external_references=skos_predicate_to_external_references,
+                        skos_namespace=skos_namespace)
 
     root.append(lu_el)
 
@@ -248,7 +278,8 @@ def add_lu_to_frame_xml_file(your_fn,
                              definition,
                              lu_type,
                              incorporated_fe=None,
-                             optional_lu_attrs={}):
+                             skos_predicate_to_external_references={},
+                             skos_namespace=None):
     frame_xml_path = os.path.join(your_fn.root,
                                   'frame',
                                   f'{frame}.xml')
@@ -256,6 +287,9 @@ def add_lu_to_frame_xml_file(your_fn,
     parser = etree.XMLParser(remove_blank_text=True)
     doc = etree.parse(frame_xml_path, parser)
     root = doc.getroot()
+
+    doc, root = add_skos_namespace(old_root=root,
+                                   skos_namespace=skos_namespace)
 
     lu_el = etree.Element('lexUnit',
                           attrib={
@@ -271,8 +305,9 @@ def add_lu_to_frame_xml_file(your_fn,
     if incorporated_fe is not None:
         lu_el.set('incorporatedFE', incorporated_fe)
 
-    for key, value in optional_lu_attrs.items():
-        lu_el.set(key, value)
+    add_skos_attributes(element=lu_el,
+                        skos_predicate_to_external_references=skos_predicate_to_external_references,
+                        skos_namespace=skos_namespace)
 
     def_el = etree.Element('definition')
     if definition is None:

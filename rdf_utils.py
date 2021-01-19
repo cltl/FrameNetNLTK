@@ -408,7 +408,8 @@ def convert_to_lemon(lemon,
     DCT = Namespace('http://purl.org/dc/terms/')
     LEXINFO = Namespace('http://www.lexinfo.net/ontology/3.0/lexinfo#')
     ONTOLEX = Namespace('http://www.w3.org/ns/lemon/ontolex#')
-    SKOS =  Namespace('http://www.w3.org/2004/02/skos/core#')
+    skos_namespace = 'http://www.w3.org/2004/02/skos/core#'
+    SKOS =  Namespace(skos_namespace)
     FN = Namespace(namespace)
 
     g.bind('lemon', LEMON)
@@ -490,6 +491,16 @@ def convert_to_lemon(lemon,
         assert LEMON.definition in lemon.subjects()
         g.add((lu_obj, LEMON.definition, Literal(lu.definition,
                                                  lang=language)))
+
+
+        # update with SKOS relationships to external references
+        table = {ord('{'): '', ord('}'): ''}
+        for attr_name, attr_value in lu.items():
+            if attr_name.startswith('{%s}' % skos_namespace):
+                skos_pred_uri = attr_name.translate(table)
+                skos_pred_uriref = URIRef(skos_pred_uri)
+                value_uriref = URIRef(attr_value)
+                g.add((lu_obj, skos_pred_uriref, value_uriref))
 
         # evokes relationship
         frame_uri = get_rdf_uri(premon_nt=premon,

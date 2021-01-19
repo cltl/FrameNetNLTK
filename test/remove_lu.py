@@ -9,7 +9,7 @@ fn = load('../test/test_lexicon')
 
 lu_id, reason = get_luid(my_fn=fn,
                          frame_label='People_by_origin',
-                         lemma='Duitser',
+                         lemma='Fransman',
                          pos='N')
 
 remove_lu(your_lexicon_folder='test_lexicon',

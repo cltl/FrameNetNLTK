@@ -12,7 +12,8 @@ mkdir stats
 #python add_compound_without_lu_id.py || exit
 #python add_lus_from_json.py || exit
 #pytest lemma_pos_in_same_frame.py || exit
+#python add_lu_with_external_ref.py || exit
 #python remove_lu.py || exit
 #pytest test_lu_rdf_uri.py || exit
 #python compute_stats.py || exit
-#python convert_rbn_to_lemon.py || exit
+python convert_to_lemon.py || exit
