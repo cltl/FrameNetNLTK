@@ -9,6 +9,12 @@ cd lemon || exit
 wget https://lemon-model.net/lemon# -O lemon.ttl || exit
 cd ..
 
+rm -rf skos
+mkdir skos
+cd skos
+wget http://www.w3.org/TR/skos-reference/skos.rdf
+cd ..
+
 rm -rf premon
 mkdir premon
 cd premon || exit
