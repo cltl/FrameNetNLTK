@@ -1,4 +1,5 @@
 from collections import defaultdict
+from datetime import datetime
 
 from rdflib.namespace import RDF, RDFS, XSD
 from rdflib.namespace import Namespace
@@ -277,7 +278,7 @@ def get_le_uri(g,
         for uriref in info.values():
             urirefs.append(uriref)
 
-    assert len(urirefs) == 1
+    assert len(urirefs) == 1, f'expected to find one uri , found {urirefs}'
 
     le_obj = urirefs[0]
 
@@ -355,6 +356,86 @@ def get_word_or_phrase(lu_type, lexemes, language, LEMON, lemon):
     return lemon_obj
 
 
+
+def get_provenance_uriref(lexicon_uri, cBy, lu):
+    provenance_uri = f'{lexicon_uri}#Provenance{cBy}'
+    return URIRef(provenance_uri)
+
+
+def get_date(cDate):
+    template = '%m/%d/%Y %H:%M:%S'
+    date = datetime.strptime(cDate[:-8], template)
+    rdf_string = date.strftime('%Y-%m-%dT%I:%M:%s')
+
+    return rdf_string
+
+
+def add_agents_and_provenances(your_fn,
+                               g,
+                               lexicon_uri,
+                               PROV,
+                               language,
+                               verbose=0):
+    """
+
+    :param your_fn: your framenet in nltk format
+    :param g: the lemon graph of your framenet
+    :param verbose:
+    :return:
+    """
+    cby_prov_to_cdates = defaultdict(list)
+    for lu in your_fn.lus():
+        cby = lu.cBy
+        prov = lu.get('provenance')
+
+        if prov is not None:
+            key = (cby, prov)
+        else:
+            key = (cby, None)
+
+        date = datetime.strptime(lu.cDate[:-8], '%m/%d/%Y %H:%M:%S')
+
+        cby_prov_to_cdates[key].append(date)
+
+
+    cby_prov_to_prov_obj = {}
+    for (cby, provenance), dates in cby_prov_to_cdates.items():
+        # add software agent
+        software_agent_uri = f'{lexicon_uri}#SoftwareAgent#{cby}'
+        software_agent_obj = URIRef(software_agent_uri)
+
+        g.add((software_agent_obj, RDF.type, PROV.SoftwareAgent))
+        g.add((software_agent_obj, RDFS.label, Literal(cby, lang=language)))
+
+        # add provenance
+        if provenance is not None:
+            provenance_uri = f'{lexicon_uri}#Provenance#{cby}-{provenance}'
+        else:
+            provenance_uri = f'{lexicon_uri}#Provenance#{cby}'
+
+        provenance_obj = URIRef(provenance_uri)
+        g.add((provenance_obj, RDF.type, PROV.Activity))
+
+        start = min(dates)
+        start_rdf_string = start.strftime('%Y-%m-%dT%I:%M:%s')
+        end = max(dates)
+        end_rdf_string = end.strftime('%Y-%m-%dT%I:%M:%s')
+
+        g.add((provenance_obj, PROV.startedAtTime, Literal(start_rdf_string,
+                                                           datatype=XSD.dateTime)))
+        g.add((provenance_obj, PROV.endedAtTime, Literal(end_rdf_string,
+                                                         datatype=XSD.dateTime)))
+
+
+        g.add((provenance_obj, PROV.wasAssociatedWith, software_agent_obj))
+
+        cby_prov_to_prov_obj[(cby, provenance)] = provenance_obj
+
+    return cby_prov_to_prov_obj
+
+
+
+
 def convert_to_lemon(lemon,
                      premon_nt_path,
                      ontolex,
@@ -408,6 +489,7 @@ def convert_to_lemon(lemon,
     DCT = Namespace('http://purl.org/dc/terms/')
     LEXINFO = Namespace('http://www.lexinfo.net/ontology/3.0/lexinfo#')
     ONTOLEX = Namespace('http://www.w3.org/ns/lemon/ontolex#')
+    PROV = Namespace('http://www.w3.org/ns/prov#')
     skos_namespace = 'http://www.w3.org/2004/02/skos/core#'
     SKOS =  Namespace(skos_namespace)
     FN = Namespace(namespace)
@@ -415,8 +497,10 @@ def convert_to_lemon(lemon,
     g.bind('lemon', LEMON)
     g.bind('dct', DCT)
     g.bind('lexinfo', LEXINFO)
+    g.bind('prov', PROV)
     g.bind('ontolex', ONTOLEX)
     g.bind('skos', SKOS)
+    g.bind('prov', PROV)
     g.bind(namespace_prefix, FN)
 
     # initialize graph
@@ -438,12 +522,27 @@ def convert_to_lemon(lemon,
     g.add((lexicon_uri_obj, DCT.identifier, Literal(lexicon_version,
                                                     datatype=XSD.decimal)))
 
+    the_lu_iterable = list(your_fn.lus())
+
+    cby_prov_to_prov_obj = add_agents_and_provenances(your_fn=your_fn,
+                                                      g=g,
+                                                      lexicon_uri=lexicon_uri,
+                                                      PROV=PROV,
+                                                      language=language,
+                                                      verbose=verbose)
 
     # update for each LE and LU
-    for lu in your_fn.lus():
+    for index, lu in enumerate(the_lu_iterable):
+
+        provenance_obj = cby_prov_to_prov_obj[(lu.cBy, lu.get('provenance'))]
 
         if verbose >= 3:
             print(f'convert LU {lu.ID} ({lu.name}) to Lemon')
+
+        if all([verbose >= 5,
+                index == 5]):
+            print('QUITTING AFTER FIRST FIVE ITERATIONS TOP')
+            break
 
         # generate LE and LU rdf uri
         le_uri, leform_uri, lu_uri = generate_le_and_lu_rdf_uri(your_fn=your_fn,
@@ -453,10 +552,17 @@ def convert_to_lemon(lemon,
                                                                 minor_version=minor_version,
                                                                 lu_id=lu.ID)
 
+
         # update LE information
         le_obj = URIRef(le_uri)
         assert LEMON.LexicalEntry in lemon.subjects()
         g.add((le_obj, RDF.type, LEMON.LexicalEntry))
+
+        # provenance LE
+        date = get_date(cDate=lu.cDate)
+        g.add((le_obj, PROV.generatedAtTime, Literal(date,
+                                                     datatype=XSD.dateTime)))
+        g.add((le_obj, PROV.wasGeneratedBy, provenance_obj))
 
         g.add((le_obj,
                LEXINFO.partOfSpeech,
@@ -478,7 +584,16 @@ def convert_to_lemon(lemon,
         g.add((le_obj, LEMON.canonicalForm, le_form_obj))
 
         # update LU information
+
+
         lu_obj = URIRef(lu_uri)
+
+        # provenance LU
+        date = get_date(cDate=lu.cDate)
+        g.add((lu_obj, PROV.generatedAtTime, Literal(date,
+                                                     datatype=XSD.dateTime)))
+        g.add((lu_obj, PROV.wasGeneratedBy, provenance_obj))
+
         assert LEMON.sense in lemon.subjects()
         g.add((le_obj, LEMON.sense, lu_obj))
         assert LEMON.LexicalSense in lemon.subjects()
@@ -528,11 +643,15 @@ def convert_to_lemon(lemon,
         assert frame_obj
         g.add((lexicon_uri_obj, LEMON.entry, le_obj))
 
-        if verbose >= 5:
-            print('QUITTING AFTER FIRST ITERATION')
-            break
+    for index, lu in enumerate(the_lu_iterable):
 
-    for lu in your_fn.lus():
+        if verbose >= 3:
+            print(f'convert LU {lu.ID} ({lu.name}) to Lemon')
+
+        if all([verbose >= 5,
+                index >= 5]):
+            print('QUITTING AFTER FIRST FIVE ITERATIONS BOTTOM')
+            break
 
         # obtain LE obj
         le_obj = get_le_uri(g=g,
@@ -592,11 +711,6 @@ def convert_to_lemon(lemon,
                                   lemon=lemon,
                                   premon=premon,
                                   le_obj=le_obj)
-
-
-        if verbose >= 5:
-            print('QUITTING AFTER FIRST ITERATION')
-            break
 
 
     if output_path is not None:
@@ -896,11 +1010,14 @@ def derive_model(fn_in_lemon, output_path=None, verbose=0):
     :return:
     """
     LEMON = Namespace('http://lemon-model.net/lemon#')
+    PROV = Namespace('http://www.w3.org/ns/prov#')
 
     the_types = [LEMON.LexicalEntry,
                  LEMON.LexicalSense,
                  LEMON.Form,
-                 LEMON.Component]
+                 LEMON.Component,
+                 PROV.Activity,
+                 PROV.SoftwareAgent]
 
     type_to_attr_to_info = {}
     for a_type in the_types:

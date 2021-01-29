@@ -12,6 +12,8 @@ STATUS = {'Unknown', 'FN1_Sent', 'Test', 'Add_Annotation',
 POS = {'PRON', 'NUM', 'A', 'PREP', 'IDIO', 'N', 'INTJ', 'V', 'ART', 'SCON', 'ADV', 'C',
        'I'}
 
+ILLEGAL_CHARS_IN_AGENT = {'#', '/', ' '}
+
 LEXEME_ATTRS = {
     'order',
     'headword',
@@ -242,3 +244,14 @@ def validate_skos(skos_predicate_to_external_references, skos):
             assert pred_uriref in skos.subjects(), f'{predicate} ({pred_uriref}) not part of skos.'
 
     return skos_namespace
+
+
+
+def validate_agent(agent):
+
+    for illegal_char_in_agent in ILLEGAL_CHARS_IN_AGENT:
+        assert illegal_char_in_agent not in agent, f'character (repr({illegal_char_in_agent})) are not allowed in agent: {agent}'
+
+def validate_provenance(provenance):
+    for illegal_char_in_agent in ILLEGAL_CHARS_IN_AGENT:
+        assert illegal_char_in_agent not in provenance, f'character (repr({illegal_char_in_agent})) are not allowed in agent: {provenance}'

@@ -73,6 +73,7 @@ add_lu(your_lexicon_folder='test_lexicon',
        status='Created',
        pos='N',
        frame='People_by_origin',
+       agent='YOUR_NAME',
        provenance='manual',
        lu_type='singleton',
        incorporated_fe="Origin",
@@ -118,6 +119,7 @@ add_lu(your_lexicon_folder='test_lexicon',
        status='Created',
        pos='N',
        frame='Change_of_leadership',
+       agent='YOUR_NAME',
        provenance='manual',
        lu_type="endocentric compound",
        incorporated_fe="Function",
@@ -169,8 +171,9 @@ for lu in my_fn.lus():
     print(lu) 
 ```
 
-Function 6: optional LU attributes.
-The NLTK package is flexible in that it allows to add additional attributes:
+Function 6: Reference to other resources
+
+The NLTK package is flexible in that it allows to add references to other resources
 ```python
 
 from nltk.corpus import framenet as fn
@@ -192,18 +195,12 @@ add_lu(your_lexicon_folder='test_lexicon',
        status='New',
        pos='N',
        frame='People_by_origin',
+       agent='YOUR_NAME',
        provenance='manual',
        lu_type="singleton",
        incorporated_fe="Origin",
-       optional_lu_attrs={"RBN_LU_ID" : "r_n-11800", 
-                          "Method" : "manual",
-                          "FN_EN_LU_ID" : "10547",
-                          "RBN_matching_relation" : "equivalence"},
        verbose=2)
 ```
-
-You will be able to access this information using the syntax **lu.ATTR_NAME**, e.g., *lu.RBN_LU_ID*.
-Since this is an open-ended class, there is no validation on what is entered.
 
 Function 7: add a batch of LUs
 It is possible to provide a JSON consisting of LUs to be added.
@@ -222,7 +219,6 @@ Please inspect **res/json/lus.json** for an example.
 Please note that the optional attributes must be present in each entry:
 * "incorporated_fe" : null or a Frame Element label, e.g., "Origin".
 * "timestamp" : null (current date) or a list [YEAR, MONTH, DAY], e.g., [2020, 6, 29]
-* "optional_lu_attrs": empty dict or filled with your optional attributes.
 
 Function 8: local http server
 It is possible to vizualize your FrameNet similar to how FrameNet visualizes it
@@ -250,42 +246,6 @@ get_stats_html(your_fn=my_fn,
 ```
 This will write an html file to disk containing the most important descriptive statistics
 about your FrameNet. Feel free to inspect the other functions in stats_utils.py for more functionality.
-
-Function 10: LU RDF URI
-We expose a function to generate a RDF URI for an LU
-
-```python
-from FrameNetNLTK import load, get_luid, generate_lu_rdf_uri, generate_le_and_lu_rdf_uri
-
-my_fn = load('test_lexicon')
-
-lu_id, reason = get_luid(my_fn=my_fn,
-                         frame_label='Change_of_leadership',
-                         lemma='verkiezing',
-                         pos='N')
-
-lexicon_uri = generate_lexicon_rdf_uri(namespace='http://rdf.cltl.nl/dfn/',
-                                             language='nld',
-                                             major_version=0,
-                                             minor_version=1)
->>>print(lexicon_uri)
-http://rdf.cltl.nl/fn_nl-lexicon-0.1
-
-
-le_rdf_uri, leform_rdf_uri, lu_rdf_uri = generate_le_and_lu_rdf_uri(your_fn=my_fn,
-                                 namespace='http://rdf.cltl.nl/dfn/',
-                                 language='nld',
-                                 major_version=0,
-                                 minor_version=1,
-                                 lu_id=lu_id)
-
->>> print(lu_rdf_uri)
-http://rdf.cltl.nl/dfn/fn_nld-lexicon-0.1-lu-1600860990463
-```
-The syntax to generate the RDF LU URI is:
-* f'{namespace}fn_{language}-lexicon-{major_version}.{minor_version}-lu-{lu_id}'
-
-This means that a URI is generated for a LANGUAGE with MAJOR_VERSION.MINOR_VERSION.
 
 ## Documentation
 The documentation can be found at **doc/FrameNetNLTK.md**.

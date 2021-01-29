@@ -22,6 +22,7 @@ add_lu(your_lexicon_folder='test_lexicon',
        status='Created',
        pos='N',
        frame='People_by_origin',
+       agent='MartenPostma',
        provenance='manual',
        incorporated_fe='Origin',
        verbose=2)
@@ -36,6 +37,7 @@ def test_twice_the_same():
            status='Created',
            pos='N',
            frame='People_by_origin',
+           agent='MartenPostma',
            provenance='manual',
            incorporated_fe='Origin',
            verbose=2)

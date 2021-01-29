@@ -17,6 +17,7 @@ def add_lu(your_lexicon_folder,
            status,
            pos,
            frame,
+           agent,
            provenance,
            lu_type='singleton',
            incorporated_fe=None,
@@ -37,6 +38,8 @@ def add_lu(your_lexicon_folder,
     validation_utils.validate_lexemes(my_fn=your_fn, lexemes=lexemes, lu_type=lu_type)
     validation_utils.validate_order_attr(lexemes=lexemes)
     validation_utils.validate_status(status=status)
+    validation_utils.validate_agent(agent=agent)
+    validation_utils.validate_provenance(provenance=provenance)
     validation_utils.validate_pos(pos=pos)
     validation_utils.validate_frame(your_fn=your_fn, frame_name=frame)
     validation_utils.validate_lexemes_vs_luname(lexemes=lexemes,
@@ -116,6 +119,7 @@ def add_lu(your_lexicon_folder,
                                        pos,
                                        lu_id,
                                        lexemes,
+                                       agent,
                                        provenance,
                                        cdate,
                                        definition,
@@ -162,6 +166,7 @@ def add_lus_from_json(your_lexicon_folder,
                         status=lu['status'],
                         pos=lu['POS'],
                         frame=lu['frame'],
+                        agent=lu['agent'],
                         provenance=lu['provenance'],
                         lu_type=lu['lu_type'],
                         incorporated_fe=lu['incorporated_fe'],
