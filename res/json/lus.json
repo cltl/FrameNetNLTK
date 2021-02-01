@@ -17,27 +17,32 @@
       "lu_type" : "singleton",
       "incorporated_fe" : "Origin",
       "timestamp" : [2020, 6, 29],
-      "optional_lu_attrs" : {}
+      "skos_predicate_to_external_references" : {
+        "exactMatch" : ["http://rdf.cltl.nl/rbn/lexicon-1.0-lu-r_n-8986"]
+      }
      },
-        { "lexemes" : [{
-            "order" : "1",
-            "headword" : "false",
-            "breakBefore" : "false",
-            "POS" : "N",
-            "name" : "Fransman"
-        }],
-      "lu_name" : "Fransman.n",
-      "definition" : "uit Frankrijk",
-      "status" : "Created",
-      "POS" : "N",
-      "frame" : "People_by_origin",
-      "agent" : "MartenPostma",
-      "provenance" : "manual",
-      "lu_type" : "singleton",
-      "incorporated_fe" : "Origin",
-      "timestamp" : null,
-          "optional_lu_attrs" : {}
-          },
+    {
+      "lexemes": [
+        {
+          "order": "1",
+          "headword": "false",
+          "breakBefore": "false",
+          "POS": "N",
+          "name": "Fransman"
+        }
+      ],
+      "lu_name": "Fransman.n",
+      "definition": "uit Frankrijk",
+      "status": "Created",
+      "POS": "N",
+      "frame": "People_by_origin",
+      "agent": "MartenPostma",
+      "provenance": "manual",
+      "lu_type": "singleton",
+      "incorporated_fe": "Origin",
+      "timestamp": null,
+      "skos_predicate_to_external_references" : {}
+    },
     { "lexemes" : [{
             "order" : "1",
             "headword" : "false",
@@ -70,7 +75,7 @@
       "lu_type" : "idiom",
       "incorporated_fe" : null,
       "timestamp" : [2020, 6, 29],
-      "optional_lu_attrs" : {}
+      "skos_predicate_to_external_references" : {}
      },
     { "lexemes" : [{
             "order" : "1",
@@ -95,7 +100,7 @@
       "lu_type" : "exocentric compound",
       "incorporated_fe" : null,
       "timestamp" : [2020, 6, 29],
-      "optional_lu_attrs" : {}
+      "skos_predicate_to_external_references" : {}
      }
   ]
 }

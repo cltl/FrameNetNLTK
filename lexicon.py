@@ -138,6 +138,7 @@ def add_lu(your_lexicon_folder,
 def add_lus_from_json(your_lexicon_folder,
                       fn_en,
                       json_path,
+                      skos,
                       verbose=0):
     """
 
@@ -171,6 +172,8 @@ def add_lus_from_json(your_lexicon_folder,
                         lu_type=lu['lu_type'],
                         incorporated_fe=lu['incorporated_fe'],
                         timestamp=the_timestamp,
+                        skos=skos,
+                        skos_predicate_to_external_references=lu['skos_predicate_to_external_references'],
                         verbose=verbose)
 
         if succes:
