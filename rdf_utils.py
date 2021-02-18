@@ -401,10 +401,10 @@ def add_agents_and_provenances(your_fn,
     cby_prov_to_prov_obj = {}
     for (cby, provenance), dates in cby_prov_to_cdates.items():
         # add software agent
-        software_agent_uri = f'{lexicon_uri}#SoftwareAgent#{cby}'
+        software_agent_uri = f'{lexicon_uri}#Agent#{cby}'
         software_agent_obj = URIRef(software_agent_uri)
 
-        g.add((software_agent_obj, RDF.type, PROV.SoftwareAgent))
+        g.add((software_agent_obj, RDF.type, PROV.Agent))
         g.add((software_agent_obj, RDFS.label, Literal(cby, lang=language)))
 
         # add provenance
@@ -1017,7 +1017,7 @@ def derive_model(fn_in_lemon, output_path=None, verbose=0):
                  LEMON.Form,
                  LEMON.Component,
                  PROV.Activity,
-                 PROV.SoftwareAgent]
+                 PROV.Agent]
 
     type_to_attr_to_info = {}
     for a_type in the_types:
