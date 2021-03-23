@@ -249,6 +249,28 @@ get_stats_html(your_fn=my_fn,
 This will write an html file to disk containing the most important descriptive statistics
 about your FrameNet. Feel free to inspect the other functions in stats_utils.py for more functionality.
 
+Function 10: convert to RDF 
+```python
+from FrameNetNLTK import load, convert_to_lemon
+
+my_fn = load(folder='test_lexicon',
+             verbose=2)
+
+convert_to_lemon(lemon=FrameNetNLTK.lemon,
+                 premon_nt_path=FrameNetNLTK.premon_nt,
+                 ontolex=FrameNetNLTK.ontolex,
+                 fn_pos_to_lexinfo=FrameNetNLTK.fn_pos_to_lexinfo,
+                 your_fn=my_fn,
+                 namespace='http://rdf.cltl.nl/dfn/',
+                 namespace_prefix='dfn',
+                 language='nld',
+                 major_version=0,
+                 minor_version=1,
+                 output_path='dfn.ttl',
+                 verbose=2)
+```
+The result of this function call is that Dutch FrameNet version 0.1 is written to disk at dfn.ttl.
+
 ## Documentation
 The documentation can be found at **doc/FrameNetNLTK.md**.
 

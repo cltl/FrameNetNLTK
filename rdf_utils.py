@@ -1016,6 +1016,7 @@ def derive_model(fn_in_lemon, output_path=None, verbose=0):
                  LEMON.LexicalSense,
                  LEMON.Form,
                  LEMON.Component,
+                 LEMON.Lexicon,
                  PROV.Activity,
                  PROV.Agent]
 
