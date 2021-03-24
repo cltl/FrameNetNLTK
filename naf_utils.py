@@ -2,8 +2,9 @@ from collections import defaultdict
 from datetime import datetime
 
 from lxml import etree
+import nltk
 
-from .rdf_utils import get_rdf_label
+from .rdf_utils import get_rdf_label, get_lu_identifier, load_graph
 
 
 
@@ -46,8 +47,6 @@ def get_sentid_to_info(naf_path):
     for wf_el in doc.xpath('text/wf'):
 
         sent_id = int(wf_el.get('sent'))
-
-        # TODO: add subtokens here
 
         if sent_id not in sentid_to_info: # I assume this is the first wf_el of the sent
             sentid_to_info[sent_id] = {
@@ -147,6 +146,7 @@ def get_most_recent_frame_uri(pred_el):
     most_recent = datetime(1,1,1)
     the_frame_uri = None
     the_source = None
+    the_lu_uri = None
 
     query = 'externalReferences/externalRef[@resource="http://premon.fbk.eu/premon/fn17"]'
     for ext_ref_el in pred_el.xpath(query):
@@ -154,15 +154,18 @@ def get_most_recent_frame_uri(pred_el):
         datetime_obj = string_to_datetime_obj(timestamp=timestamp)
         source = ext_ref_el.get('source')
         frame_uri = ext_ref_el.get('reference')
+        lu_uri = ext_ref_el.get('lu_uri')
 
         if datetime_obj > most_recent:
             most_recent = datetime_obj
             the_frame_uri = frame_uri
             the_source = source
+            the_lu_uri = lu_uri
 
-    return the_frame_uri, the_source, most_recent
+    return the_frame_uri, the_source, most_recent, the_lu_uri
 
 def load_annotations_from_naf(your_fn,
+                              path_to_your_fn_in_lemon,
                               naf_path,
                               doc_id,
                               premon):
@@ -171,6 +174,8 @@ def load_annotations_from_naf(your_fn,
     """
     parser = etree.XMLParser(remove_blank_text=True, strip_cdata=False)
     doc = etree.parse(naf_path, parser)
+
+    your_fn_in_lemon = load_graph(path=path_to_your_fn_in_lemon, format='ttl')
 
     sentid_to_annotations = defaultdict(list)
 
@@ -193,7 +198,7 @@ def load_annotations_from_naf(your_fn,
 
 
         status = pred_el.get('status')
-        frame_uri, source, timestamp = get_most_recent_frame_uri(pred_el=pred_el)
+        frame_uri, source, timestamp, lu_uri = get_most_recent_frame_uri(pred_el=pred_el)
 
         # obtain frame label using premon
         frame_label = get_rdf_label(graph=premon,
@@ -206,10 +211,20 @@ def load_annotations_from_naf(your_fn,
         anno_set_id = f'{doc_id}{str(naf_sent_id).zfill(8)}{str(anno_set_counter).zfill(8)}'
         anno_set_counter += 1
 
+        # query lemon for luID and luName, else to discuss
+        lu_id = get_lu_identifier(graph=your_fn_in_lemon, lu_uri=lu_uri)
+
+        # query for luName
+        try:
+            lu_obj = your_fn.lu(lu_id)
+            lu_name = lu_obj.name
+        except nltk.corpus.reader.framenet.FramenetError:
+            lu_name = 'CANDIDATE-TO-BE-ADDED'
+
         predicate = {
-            'cDate': "TODO",  # predicate timestamp
-            'luID': "TODO",  # query Lemon representation of the lexicon
-            "luName": "TODO",  # NLTK lexicon
+            'cDate': timestamp.strftime("%m/%d/%Y %H:%M:%S UTC %a"),  # predicate timestamp
+            'luID': str(lu_id),  # query Lemon representation of the lexicon
+            "luName": lu_name,  # NLTK lexicon
             "frameID": str(frame.ID),  # NLTK lexicon
             "frameName": frame_label,  # NLTK lexicon
             "status": status,  # perhaps stick to NAF labels

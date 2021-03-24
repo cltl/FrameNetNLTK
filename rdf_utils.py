@@ -795,11 +795,10 @@ def convert_nquads_to_nt(g, output_path):
     """
     g.serialize(destination=output_path, format='nt')
 
-def load_nt_graph(nt_path):
+def load_graph(path, format='nt'):
     g = Graph()
-    with open(nt_path, 'rb') as infile:
-        g.parse(file=infile, format='nt')
-
+    with open(path, 'rb') as infile:
+        g.parse(file=infile, format=format)
     return g
 
 
@@ -836,6 +835,27 @@ def get_rdf_label(graph, uri):
     assert len(labels) == 1, f'expected one label for {uri}, got {labels}'
 
     return labels.pop()
+
+
+def get_lu_identifier(graph, lu_uri):
+    query = """SELECT ?o WHERE {
+        <%s> dct:identifier ?o
+    }"""
+    the_query = query % lu_uri
+
+    results = graph.query(the_query)
+
+    identifiers = set()
+    for result in results:
+        identifier = str(result.asdict()['o'])
+        identifiers.add(identifier)
+
+    if not identifiers:
+        lu_id = 'NOT-PART-OF-LEXICON'
+    else:
+        lu_id = int(identifiers.pop())
+
+    return lu_id
 
 
 def get_fe_uri(graph, frame_uri, fe_label):

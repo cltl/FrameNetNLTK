@@ -2,13 +2,14 @@ import os
 import shutil
 
 from lxml import etree
+from rdflib import Graph
 
 from .path_utils import get_relevant_paths
 from .xml_utils import strip_corpus_els_and_save
 from .xml_utils import add_annotations_to_nltk_doc
 from .naf_utils import get_sentid_to_info
 from .naf_utils import load_annotations_from_naf
-from .rdf_utils import load_nt_graph
+from .rdf_utils import load_graph
 
 
 def generate_id(fulltext_xml_path,
@@ -66,6 +67,12 @@ def generate_id(fulltext_xml_path,
         else:
             the_id = 1
         new = True
+
+
+    if verbose >= 5:
+        print()
+        print(f'name and description: {name_to_description_and_id}')
+        print(f'is a new entry for type {type}: {new}')
 
     return the_id, new
 
@@ -211,10 +218,38 @@ def remove_corpus(corpus_name):
     # TODO: what does this actually mean?
     pass
 
-def remove_document(corpus_name,
-                    document_name):
-    # TODO: what does this entail?
-    pass
+def remove_document(fulltext_xml_path,
+                    doc_id,
+                    doc_path,
+                    verbose=0):
+
+    # remove document
+    os.remove(doc_path)
+    if verbose >= 2:
+        print(f'removed existing document from {doc_path}')
+
+    # remove document from fulltext_xml index
+    parser = etree.XMLParser(remove_blank_text=True)
+    doc = etree.parse(fulltext_xml_path, parser)
+
+    query = '{http://framenet.icsi.berkeley.edu}corpus/{http://framenet.icsi.berkeley.edu}document'
+    doc_els = doc.findall(query)
+    els_to_remove = []
+    for doc_el in doc_els:
+        doc_el_id = doc_el.get('ID')
+        if doc_el_id == str(doc_id):
+            els_to_remove.append(doc_el)
+
+    assert len(els_to_remove) == 1, f'expected to find one document el to remove from fulltextindex.xml, found {len(els_to_remove)}'
+    for el_to_remove in els_to_remove:
+        el_to_remove.getparent().remove(el_to_remove)
+
+    doc.write(fulltext_xml_path,
+              encoding='utf-8',
+              pretty_print=True,
+              xml_declaration=True)
+
+
 
 def add_sentence(corpus,
                  document,
@@ -285,6 +320,7 @@ def setup_fulltext(your_paths,
 
 
 def add_annotations_from_naf_31(your_fn,
+                                path_to_your_fn_in_lemon,
                                 fn_en,
                                 premon_nt,
                                 corpus_name,
@@ -310,7 +346,8 @@ def add_annotations_from_naf_31(your_fn,
     your_paths = get_relevant_paths(root=your_fn._root, check_if_exists=False)
     en_paths = get_relevant_paths(root=fn_en._root, check_if_exists=True)
 
-    premon = load_nt_graph(nt_path=premon_nt)
+    premon = load_graph(path=premon_nt, format='nt')
+    your_fn_in_lemon = load_graph(path=path_to_your_fn_in_lemon, format='ttl')
 
     setup_fulltext(your_paths=your_paths,
                    en_paths=en_paths,
@@ -319,10 +356,10 @@ def add_annotations_from_naf_31(your_fn,
 
     # corpus in index
     corpus_id, new_corpus = generate_id(fulltext_xml_path=your_paths['fulltextIndex.xml'],
-                                 type='corpus',
-                                 the_name=corpus_name,
-                                 the_description=corpus_description,
-                                 verbose=verbose)
+                                        type='corpus',
+                                        the_name=corpus_name,
+                                        the_description=corpus_description,
+                                        verbose=verbose)
 
     if new_corpus:
         add_corpus_to_index(fulltext_xml_path=your_paths['fulltextIndex.xml'],
@@ -340,9 +377,20 @@ def add_annotations_from_naf_31(your_fn,
 
     doc_id, new_doc = generate_id(fulltext_xml_path=your_paths['fulltextIndex.xml'],
                                   type='document',
-                                  the_name=corpus_name,
-                                  the_description=corpus_name,
+                                  the_name=doc_name,
+                                  the_description=doc_name,
                                   verbose=verbose)
+
+    # remove the document if it exists and the user wants to overwrite
+    if all([not new_doc,
+            overwrite,
+            ]):
+        remove_document(fulltext_xml_path=your_paths['fulltextIndex.xml'],
+                        doc_id=doc_id,
+                        doc_path=output_path,
+                        verbose=verbose)
+        new_doc = True # since the document was removed, it is a now a new document
+
 
     if new_doc:
         add_document_to_index(fulltext_xml_path=your_paths['fulltextIndex.xml'],
@@ -350,14 +398,6 @@ def add_annotations_from_naf_31(your_fn,
                               doc_name=doc_name,
                               doc_description=doc_name,
                               verbose=verbose)
-
-    else: # the document existed before
-        if overwrite:
-            os.remove(output_path)
-            if verbose >= 2:
-                print(f'removed existing document from {output_path}')
-        else:
-            raise NotImplementedError(f'updating existing document has not been implemented.')
 
     if new_doc:
         create_document(example_doc=en_paths['example_document'],
@@ -383,9 +423,10 @@ def add_annotations_from_naf_31(your_fn,
 
     # load annotations from NAF
     sentid_to_annotations = load_annotations_from_naf(your_fn=your_fn,
-                                                   naf_path=naf_path,
-                                                   doc_id=doc_id,
-                                                   premon=premon)
+                                                      path_to_your_fn_in_lemon=path_to_your_fn_in_lemon,
+                                                      naf_path=naf_path,
+                                                      doc_id=doc_id,
+                                                      premon=premon)
 
 
     # update annotations
