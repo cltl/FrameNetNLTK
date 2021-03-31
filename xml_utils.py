@@ -484,6 +484,26 @@ def add_annotations_to_nltk_doc(doc_xml_path,
             sent_layer = etree.Element('layer', attrib={'rank' : '1', 'name' : 'Sent'})
             verb_layer = etree.Element('layer', attrib={'rank' : '1', 'name' : 'Verb'})
 
+            # add Frame Elements layers
+            for fe_label, fe_info in annotation['fe_label_to_fe_info'].items():
+
+                start = min([start_end_offsets['start_offset_in_sent']
+                             for start_end_offsets in fe_info['pred_offsets']])
+                end = max([start_end_offsets['end_offset_in_sent']
+                           for start_end_offsets in fe_info['pred_offsets']])
+                fe_layer_label_el = etree.Element('label',
+                                                  attrib={
+                                                      'cBy' : fe_info['cBy'],
+                                                      'feID' : str(fe_info['feID']),
+                                                      'bgColor' : fe_info['bgColor'],
+                                                      'fgColor' : fe_info['fgColor'],
+                                                      'name' : fe_info['name'],
+                                                      'start' : str(start),
+                                                      'end' : str(end)
+                                                  })
+
+                fe_layer.append(fe_layer_label_el)
+
             anno_set_el.extend([target_layer, fe_layer, gf_layer, pt_layer, other_layer, sent_layer, verb_layer])
             sent_el.append(anno_set_el)
             num_annotations_added += 1

@@ -1,8 +1,11 @@
 from collections import defaultdict
 from datetime import datetime
+import os
 
 from lxml import etree
 import nltk
+
+from nltk.corpus import framenet as fn_en
 
 from .rdf_utils import get_rdf_label, get_lu_identifier, load_graph
 
@@ -137,32 +140,71 @@ def get_markable_id_to_info(doc,
     return markable_id_to_info
 
 
-def get_most_recent_frame_uri(pred_el):
+def get_most_recent_premon_uri(el):
     """
 
     :param pred_el:
     :return:
     """
     most_recent = datetime(1,1,1)
-    the_frame_uri = None
+    the_premon_uri = None
     the_source = None
     the_lu_uri = None
 
     query = 'externalReferences/externalRef[@resource="http://premon.fbk.eu/premon/fn17"]'
-    for ext_ref_el in pred_el.xpath(query):
+    for ext_ref_el in el.xpath(query):
         timestamp = ext_ref_el.get('timestamp')
         datetime_obj = string_to_datetime_obj(timestamp=timestamp)
         source = ext_ref_el.get('source')
-        frame_uri = ext_ref_el.get('reference')
+        premon_uri = ext_ref_el.get('reference')
         lu_uri = ext_ref_el.get('lu_uri')
 
         if datetime_obj > most_recent:
             most_recent = datetime_obj
-            the_frame_uri = frame_uri
+            the_premon_uri = premon_uri
             the_source = source
             the_lu_uri = lu_uri
 
-    return the_frame_uri, the_source, most_recent, the_lu_uri
+    return the_premon_uri, the_source, most_recent, the_lu_uri
+
+
+
+def get_annotation_dict(naf_el, markable_id_to_info, premon, verbose=0):
+
+    if naf_el.get('status') == 'deprecated':
+        return None, None, None, None, None, None, None
+
+    # get predicate target id
+    markable_id = naf_el.find('span/target').get('id')
+
+    # get start_offset_in_sent and end_offset_in_sent
+    pred_offsets = markable_id_to_info[markable_id]
+    naf_sent_id = pred_offsets[0]['naf_sent_id']
+
+    status = naf_el.get('status')
+    premon_uri, source, timestamp, lu_uri = get_most_recent_premon_uri(el=naf_el)
+
+    # obtain frame label using premon
+    label = get_rdf_label(graph=premon,
+                          uri=premon_uri)
+
+    return label, naf_sent_id, status, lu_uri, timestamp, pred_offsets, source
+
+
+def get_fe_colors(fn_en, frame_label, fe_label):
+
+    frame_xml_path = os.path.join(fn_en._root, 'frame', f'{frame_label}.xml')
+    assert os.path.exists(frame_xml_path)
+
+    doc = etree.parse(frame_xml_path)
+    root = doc.getroot()
+
+    for fe_el in root.findall('{http://framenet.icsi.berkeley.edu}FE'):
+        if fe_el.get('name') == fe_label:
+            bg_color = fe_el.get('bgColor')
+            fg_color = fe_el.get('fgColor')
+
+    return bg_color, fg_color
 
 def load_annotations_from_naf(your_fn,
                               path_to_your_fn_in_lemon,
@@ -186,23 +228,13 @@ def load_annotations_from_naf(your_fn,
 
     for pred_el in doc.xpath('srl/predicate'):
 
-        if pred_el.get('status') == 'deprecated':
+        frame_label, naf_sent_id,\
+        status, lu_uri, timestamp,\
+        pred_offsets, source = get_annotation_dict(naf_el=pred_el,
+                                                   markable_id_to_info=markable_id_to_info,
+                                                   premon=premon)
+        if frame_label is None:
             continue
-
-        # get predicate target id
-        markable_id = pred_el.find('span/target').get('id')
-
-        # get start_offset_in_sent and end_offset_in_sent
-        pred_offsets = markable_id_to_info[markable_id]
-        naf_sent_id = pred_offsets[0]['naf_sent_id']
-
-
-        status = pred_el.get('status')
-        frame_uri, source, timestamp, lu_uri = get_most_recent_frame_uri(pred_el=pred_el)
-
-        # obtain frame label using premon
-        frame_label = get_rdf_label(graph=premon,
-                                    uri=frame_uri)
 
         # load frame in NLTK and obtain attribute values
         frame = your_fn.frame_by_name(frame_label)
@@ -229,9 +261,39 @@ def load_annotations_from_naf(your_fn,
             "frameName": frame_label,  # NLTK lexicon
             "status": status,  # perhaps stick to NAF labels
             "ID": anno_set_id,  # generate annotationset id,
-            'pred_offsets' : pred_offsets,
-            "cBy": source  # extract from header
+            'pred_offsets': pred_offsets,
+            "cBy": source  # extract from header,
         }
+
+        # add frame elements
+        fe_label_to_fe_info = {}
+        for role_el in pred_el.xpath('role'):
+            fe_label, naf_sent_id, \
+            status, lu_uri, timestamp, \
+            fe_offsets, source = get_annotation_dict(naf_el=role_el,
+                                                       markable_id_to_info=markable_id_to_info,
+                                                       premon=premon)
+            if fe_label is None:
+                continue
+
+            fe_obj = frame.FE[fe_label]
+            fe_id = fe_obj.ID
+
+            bg_color, fg_color = get_fe_colors(fn_en=fn_en, frame_label=frame_label, fe_label=fe_label)
+
+            # example: cBy="CFB" feID="1805" bgColor="0000FF" fgColor="FFFFFF" end="24" start="21" name="Count"
+            fe_info = {
+                "cBy" : source,
+                "pred_offsets" : fe_offsets,
+                "name" : fe_label,
+                'feID' : fe_id,
+                'bgColor' : bg_color,
+                'fgColor' : fg_color
+            }
+
+            fe_label_to_fe_info[fe_label] = fe_info
+
+        predicate['fe_label_to_fe_info'] = fe_label_to_fe_info
 
         sentid_to_annotations[int(naf_sent_id)].append(predicate)
 

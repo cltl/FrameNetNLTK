@@ -24,11 +24,11 @@ path_dfn_in_lemon = 'stats/dfn_0.1.ttl'
 dfn_in_lemon = Graph()
 dfn_in_lemon.parse(path_dfn_in_lemon, format='ttl')
 
-# TODO: update NAF file with correct LU URIs
+# update NAF file with correct LU URIs
 parser = etree.XMLParser(remove_blank_text=True, strip_cdata=False)
 doc = etree.parse(naf_path, parser)
 
-# TODO: ext_ref_el for predicate annotation
+# ext_ref_el for predicate annotation
 ext_ref_els = doc.findall('srl/predicate/externalReferences/externalRef')
 assert len(ext_ref_els) == 1, f'expected 2 externalRef elements, found {len(ext_ref_els)}'
 ext_ref_el = ext_ref_els[0]
@@ -43,9 +43,6 @@ base, old_lu_id = predicate_lu_uri.rsplit('-', 1)
 new_predicate_lu_uri = '-'.join([base, str(new_lu_id)])
 assert URIRef(new_predicate_lu_uri) in dfn_in_lemon.subjects()
 ext_ref_el.set('lu_uri', new_predicate_lu_uri)
-
-# TODO: ext_ref_el for role annotation
-
 
 doc.write(naf_path,
           encoding='utf-8',

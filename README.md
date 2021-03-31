@@ -271,6 +271,43 @@ convert_to_lemon(lemon=FrameNetNLTK.lemon,
 ```
 The result of this function call is that Dutch FrameNet version 0.1 is written to disk at dfn.ttl.
 
+
+Function 11: Incorporating NAF files into the lexicon
+
+```python 
+import FrameNetNLTK
+from nltk.corpus import framenet as fn
+naf_path = 'test/test_naf_files/predicate_in_compound.naf'
+corpus_name = 'HDD'
+corpus_description = 'HistoricalDistanceData'
+path_dfn_in_lemon = 'test/stats/dfn_0.1.ttl'
+
+my_fn = load(folder='test_lexicon',
+             verbose=2)
+
+add_annotations_from_naf_31(your_fn=my_fn,
+                            path_to_your_fn_in_lemon=path_dfn_in_lemon,
+                            fn_en=fn,
+                            premon_nt=FrameNetNLTK.premon_nt,
+                            corpus_name=corpus_name,
+                            corpus_description=corpus_description,
+                            naf_path=naf_path,
+                            overwrite=True,
+                            start_from_scratch=False,
+                            verbose=5)
+
+
+my_fn = load(folder='test_lexicon',
+             verbose=2)
+
+for annotation in my_fn.annotations():
+    print(annotation)
+```
+This will enrich the **fulltext** folder of the lexicon with an additional xml file, containing your annotations.
+Please note that the Lemon version of your FrameNet is needed (see Function 10).
+This step is also very useful in order to enrich the lexicon with new LUs.
+If an annotation is created for which no LU existed, the LU name is **CANDIDATE-TO-BE-ADDED**.
+
 ## Documentation
 The documentation can be found at **doc/FrameNetNLTK.md**.
 
